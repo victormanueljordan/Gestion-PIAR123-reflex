@@ -1,5 +1,6 @@
 import reflex as rx
 from app.states.student_state import StudentState, Student
+from app.components.student_form import add_student_modal
 
 
 def student_actions() -> rx.Component:
@@ -60,6 +61,7 @@ def student_row(student: Student) -> rx.Component:
 def students_page() -> rx.Component:
     """Page for managing students."""
     return rx.el.div(
+        add_student_modal(),
         rx.el.div(
             rx.el.div(
                 rx.el.h1(
@@ -74,6 +76,7 @@ def students_page() -> rx.Component:
             rx.el.button(
                 rx.icon("circle_plus", class_name="h-5 w-5"),
                 "Añadir Estudiante",
+                on_click=StudentState.toggle_add_student_modal,
                 class_name="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors",
             ),
             class_name="flex items-center justify-between",
