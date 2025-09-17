@@ -77,6 +77,10 @@ class StudentState(rx.State):
     @rx.event
     def add_student(self, form_data: dict):
         """Adds a new student from the form data."""
+        if not all(
+            (form_data.get(field) for field in ["nombres", "apellidos", "grado_actual"])
+        ):
+            return rx.toast.error("Por favor complete todos los campos requeridos.")
         new_id = max((s["id"] for s in self.students), default=0) + 1
         new_name = (
             f"{form_data.get('nombres', '')} {form_data.get('apellidos', '')}".strip()
