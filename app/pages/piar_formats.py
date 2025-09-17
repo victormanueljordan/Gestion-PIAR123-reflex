@@ -1,8 +1,9 @@
 import reflex as rx
 from app.states.piar_state import PiarState, PiarFormat
+from app.pages.piar_form import piar_form_page
 
 
-def piar_actions() -> rx.Component:
+def piar_actions(piar: PiarFormat) -> rx.Component:
     return rx.el.div(
         rx.el.button(
             rx.icon("eye", class_name="h-4 w-4"),
@@ -10,6 +11,7 @@ def piar_actions() -> rx.Component:
         ),
         rx.el.button(
             rx.icon("pencil", class_name="h-4 w-4"),
+            on_click=lambda: PiarState.select_piar_for_editing(piar),
             class_name="p-2 hover:bg-neutral-200 rounded-md",
         ),
         rx.el.button(
@@ -56,13 +58,13 @@ def piar_row(piar: PiarFormat) -> rx.Component:
         ),
         rx.el.td(piar["creation_date"], class_name="px-6 py-4 text-neutral-600"),
         rx.el.td(status_badge(piar["status"]), class_name="px-6 py-4"),
-        rx.el.td(piar_actions(), class_name="px-6 py-4 text-right"),
+        rx.el.td(piar_actions(piar), class_name="px-6 py-4 text-right"),
         class_name="border-b border-neutral-200 hover:bg-neutral-100",
     )
 
 
-def piar_formats_page() -> rx.Component:
-    """Page for managing PIAR formats."""
+def piar_list_view() -> rx.Component:
+    """The view for listing all PIAR formats."""
     return rx.el.div(
         rx.el.div(
             rx.el.div(
@@ -70,14 +72,9 @@ def piar_formats_page() -> rx.Component:
                     "Formatos PIAR", class_name="text-3xl font-bold text-neutral-800"
                 ),
                 rx.el.p(
-                    "Cree, edite y gestione los formatos PIAR.",
+                    "Edite y gestione los formatos PIAR de los estudiantes.",
                     class_name="text-neutral-600 mt-1",
                 ),
-            ),
-            rx.el.button(
-                rx.icon("circle_plus", class_name="h-5 w-5"),
-                "Crear Nuevo PIAR",
-                class_name="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition-colors",
             ),
             class_name="flex items-center justify-between",
         ),
@@ -108,5 +105,13 @@ def piar_formats_page() -> rx.Component:
             ),
             class_name="mt-8",
         ),
+        class_name="w-full",
+    )
+
+
+def piar_formats_page() -> rx.Component:
+    """Page for managing PIAR formats."""
+    return rx.el.div(
+        rx.cond(PiarState.show_piar_form, piar_form_page(), piar_list_view()),
         class_name="w-full",
     )

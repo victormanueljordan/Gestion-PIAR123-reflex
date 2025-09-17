@@ -1,5 +1,5 @@
 import reflex as rx
-from typing import TypedDict
+from typing import TypedDict, Optional
 
 
 class PiarFormat(TypedDict):
@@ -38,3 +38,17 @@ class PiarState(rx.State):
             "status": "En Progreso",
         },
     ]
+    show_piar_form: bool = False
+    selected_piar: Optional[PiarFormat] = None
+
+    @rx.event
+    def select_piar_for_editing(self, piar: PiarFormat):
+        """Selects a PIAR to edit and shows the form."""
+        self.selected_piar = piar
+        self.show_piar_form = True
+
+    @rx.event
+    def return_to_piar_list(self):
+        """Returns to the list of PIARs."""
+        self.show_piar_form = False
+        self.selected_piar = None
