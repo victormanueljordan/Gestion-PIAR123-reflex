@@ -112,6 +112,10 @@ def piar_list_view() -> rx.Component:
 def piar_formats_page() -> rx.Component:
     """Page for managing PIAR formats."""
     return rx.el.div(
-        rx.cond(PiarState.show_piar_form, piar_form_page(), piar_list_view()),
+        rx.cond(
+            PiarState.show_piar_form & PiarState.selected_piar.is_not_none(),
+            piar_form_page(),
+            piar_list_view(),
+        ),
         class_name="w-full",
     )
