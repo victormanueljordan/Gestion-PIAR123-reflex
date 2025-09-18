@@ -83,6 +83,8 @@ class Seguimiento(TypedDict):
     acciones_mejora: str
 
 
+import math
+
 MultiEntrySection = Literal[
     "valoracion_interdisciplinar", "barreras", "ajustes", "estrategias", "seguimiento"
 ]
@@ -324,6 +326,62 @@ class PiarState(rx.State):
                     "message": f"¡Hola! Soy tu asistente pedagógico. ¿Cómo puedo ayudarte hoy a definir las barreras y ajustes para {student_name}?",
                 }
             )
+
+    search_query_piar: str = ""
+    status_filter_piar: str = ""
+    current_page_piar: int = 1
+    page_size_piar: int = 5
+
+    @rx.var
+    def status_options_piar(self) -> list[str]:
+        statuses = {piar["status"] for piar in self.piar_formats}
+        return ["Todos los estados"] + sorted(list(statuses))
+
+    @rx.var
+    def filtered_piar_formats(self) -> list[PiarFormat]:
+        """Returns the filtered list of PIAR formats."""
+        return [
+            piar
+            for piar in self.piar_formats
+            if self.search_query_piar.lower() in piar["student_name"].lower()
+            and (
+                not self.status_filter_piar or piar["status"] == self.status_filter_piar
+            )
+        ]
+
+    @rx.var
+    def total_pages_piar(self) -> int:
+        """Returns the total number of pages for PIAR formats."""
+        if not self.filtered_piar_formats:
+            return 1
+        return math.ceil(len(self.filtered_piar_formats) / self.page_size_piar)
+
+    @rx.var
+    def paginated_piar_formats(self) -> list[PiarFormat]:
+        """Returns the paginated list of PIAR formats for the current page."""
+        start = (self.current_page_piar - 1) * self.page_size_piar
+        end = start + self.page_size_piar
+        return self.filtered_piar_formats[start:end]
+
+    @rx.event
+    def set_search_query_piar(self, query: str):
+        self.search_query_piar = query
+        self.current_page_piar = 1
+
+    @rx.event
+    def set_status_filter_piar(self, status: str):
+        self.status_filter_piar = status if status != "Todos los estados" else ""
+        self.current_page_piar = 1
+
+    @rx.event
+    def prev_page_piar(self):
+        if self.current_page_piar > 1:
+            self.current_page_piar -= 1
+
+    @rx.event
+    def next_page_piar(self):
+        if self.current_page_piar < self.total_pages_piar:
+            self.current_page_piar += 1
 
     @rx.event
     def save_item(self, form_data: dict):

@@ -1,5 +1,6 @@
 import reflex as rx
 from typing import TypedDict, Literal
+import math
 
 
 class Student(TypedDict):
@@ -58,9 +59,83 @@ class StudentState(rx.State):
             "status": "Activo",
             "avatar": "Maria Hernandez",
         },
+        {
+            "id": 6,
+            "name": "José González",
+            "grade": "5to Grado",
+            "status": "Activo",
+            "avatar": "Jose Gonzalez",
+        },
+        {
+            "id": 7,
+            "name": "Laura López",
+            "grade": "1er Grado",
+            "status": "Activo",
+            "avatar": "Laura Lopez",
+        },
     ]
     show_add_student_modal: bool = False
     active_tab: TabName = "Identificación del estudiante"
+    search_query: str = ""
+    grade_filter: str = ""
+    status_filter: str = ""
+    current_page: int = 1
+    page_size: int = 5
+
+    @rx.var
+    def grade_options(self) -> list[str]:
+        grades = {student["grade"] for student in self.students}
+        return ["Todos los grados"] + sorted(list(grades))
+
+    @rx.var
+    def filtered_students(self) -> list[Student]:
+        """Returns the filtered list of students."""
+        return [
+            student
+            for student in self.students
+            if self.search_query.lower() in student["name"].lower()
+            and (not self.grade_filter or student["grade"] == self.grade_filter)
+            and (not self.status_filter or student["status"] == self.status_filter)
+        ]
+
+    @rx.var
+    def total_pages(self) -> int:
+        """Returns the total number of pages."""
+        if not self.filtered_students:
+            return 1
+        return math.ceil(len(self.filtered_students) / self.page_size)
+
+    @rx.var
+    def paginated_students(self) -> list[Student]:
+        """Returns the paginated list of students for the current page."""
+        start = (self.current_page - 1) * self.page_size
+        end = start + self.page_size
+        return self.filtered_students[start:end]
+
+    @rx.event
+    def set_search_query(self, query: str):
+        self.search_query = query
+        self.current_page = 1
+
+    @rx.event
+    def set_grade_filter(self, grade: str):
+        self.grade_filter = grade if grade != "Todos los grados" else ""
+        self.current_page = 1
+
+    @rx.event
+    def set_status_filter(self, status: str):
+        self.status_filter = status if status != "Todos los estados" else ""
+        self.current_page = 1
+
+    @rx.event
+    def prev_page(self):
+        if self.current_page > 1:
+            self.current_page -= 1
+
+    @rx.event
+    def next_page(self):
+        if self.current_page < self.total_pages:
+            self.current_page += 1
 
     @rx.event
     def toggle_add_student_modal(self):

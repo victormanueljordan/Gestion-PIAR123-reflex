@@ -88,6 +88,26 @@ def piar_list_view() -> rx.Component:
         ),
         rx.el.div(
             rx.el.div(
+                rx.el.input(
+                    placeholder="Buscar por nombre de estudiante...",
+                    on_change=PiarState.set_search_query_piar.debounce(300),
+                    class_name="w-full md:w-1/3 px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                ),
+                rx.el.select(
+                    rx.foreach(
+                        PiarState.status_options_piar,
+                        lambda status: rx.el.option(status, value=status),
+                    ),
+                    on_change=PiarState.set_status_filter_piar,
+                    default_value="",
+                    class_name="w-full md:w-1/4 px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                ),
+                class_name="flex flex-col md:flex-row gap-4 mb-6",
+            ),
+            class_name="mt-8",
+        ),
+        rx.el.div(
+            rx.el.div(
                 rx.el.table(
                     rx.el.thead(
                         rx.el.tr(
@@ -106,12 +126,34 @@ def piar_list_view() -> rx.Component:
                             rx.el.th("", class_name="px-6 py-3"),
                         )
                     ),
-                    rx.el.tbody(rx.foreach(PiarState.piar_formats, piar_row)),
+                    rx.el.tbody(rx.foreach(PiarState.paginated_piar_formats, piar_row)),
                     class_name="min-w-full bg-white",
                 ),
                 class_name="overflow-hidden border border-neutral-200 rounded-xl",
             ),
-            class_name="mt-8",
+            class_name="mt-4",
+        ),
+        rx.el.div(
+            rx.el.p(
+                f"Página {PiarState.current_page_piar} de {PiarState.total_pages_piar}",
+                class_name="text-sm text-neutral-600",
+            ),
+            rx.el.div(
+                rx.el.button(
+                    "Anterior",
+                    on_click=PiarState.prev_page_piar,
+                    disabled=PiarState.current_page_piar <= 1,
+                    class_name="px-4 py-2 text-sm font-semibold bg-white border border-neutral-300 rounded-md shadow-sm hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed",
+                ),
+                rx.el.button(
+                    "Siguiente",
+                    on_click=PiarState.next_page_piar,
+                    disabled=PiarState.current_page_piar >= PiarState.total_pages_piar,
+                    class_name="px-4 py-2 text-sm font-semibold bg-white border border-neutral-300 rounded-md shadow-sm hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed",
+                ),
+                class_name="flex gap-2",
+            ),
+            class_name="flex justify-between items-center mt-4",
         ),
         class_name="w-full",
     )

@@ -83,6 +83,34 @@ def students_page() -> rx.Component:
         ),
         rx.el.div(
             rx.el.div(
+                rx.el.input(
+                    placeholder="Buscar por nombre...",
+                    on_change=StudentState.set_search_query.debounce(300),
+                    class_name="w-full md:w-1/3 px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                ),
+                rx.el.select(
+                    rx.foreach(
+                        StudentState.grade_options,
+                        lambda grade: rx.el.option(grade, value=grade),
+                    ),
+                    on_change=StudentState.set_grade_filter,
+                    default_value="",
+                    class_name="w-full md:w-1/4 px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                ),
+                rx.el.select(
+                    rx.el.option("Todos los estados", value=""),
+                    rx.el.option("Activo", value="Activo"),
+                    rx.el.option("Inactivo", value="Inactivo"),
+                    on_change=StudentState.set_status_filter,
+                    default_value="",
+                    class_name="w-full md:w-1/4 px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                ),
+                class_name="flex flex-col md:flex-row gap-4 mb-6",
+            ),
+            class_name="mt-8",
+        ),
+        rx.el.div(
+            rx.el.div(
                 rx.el.table(
                     rx.el.thead(
                         rx.el.tr(
@@ -101,12 +129,36 @@ def students_page() -> rx.Component:
                             rx.el.th("", class_name="px-6 py-3"),
                         )
                     ),
-                    rx.el.tbody(rx.foreach(StudentState.students, student_row)),
+                    rx.el.tbody(
+                        rx.foreach(StudentState.paginated_students, student_row)
+                    ),
                     class_name="min-w-full bg-white",
                 ),
                 class_name="overflow-hidden border border-neutral-200 rounded-xl",
             ),
-            class_name="mt-8",
+            class_name="mt-4",
+        ),
+        rx.el.div(
+            rx.el.p(
+                f"Página {StudentState.current_page} de {StudentState.total_pages}",
+                class_name="text-sm text-neutral-600",
+            ),
+            rx.el.div(
+                rx.el.button(
+                    "Anterior",
+                    on_click=StudentState.prev_page,
+                    disabled=StudentState.current_page <= 1,
+                    class_name="px-4 py-2 text-sm font-semibold bg-white border border-neutral-300 rounded-md shadow-sm hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed",
+                ),
+                rx.el.button(
+                    "Siguiente",
+                    on_click=StudentState.next_page,
+                    disabled=StudentState.current_page >= StudentState.total_pages,
+                    class_name="px-4 py-2 text-sm font-semibold bg-white border border-neutral-300 rounded-md shadow-sm hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed",
+                ),
+                class_name="flex gap-2",
+            ),
+            class_name="flex justify-between items-center mt-4",
         ),
         class_name="w-full",
     )
