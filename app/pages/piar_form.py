@@ -627,7 +627,21 @@ def piar_form_page() -> rx.Component:
             ),
         ),
         accordion_section(
-            f"4. Estrategias pedagógicas ({PiarState.estrategias.length()})",
+            f"4. Barreras para el aprendizaje ({PiarState.barreras.length()})",
+            "barreras",
+            multi_entry_section(
+                "barreras", PiarState.barreras, ["Materia", "Periodo", "Tipo Barrera"]
+            ),
+        ),
+        accordion_section(
+            f"5. Ajustes razonables ({PiarState.ajustes.length()})",
+            "ajustes",
+            multi_entry_section(
+                "ajustes", PiarState.ajustes, ["Materia", "Periodo", "Categoría Ajuste"]
+            ),
+        ),
+        accordion_section(
+            f"6. Estrategias pedagógicas ({PiarState.estrategias.length()})",
             "estrategias",
             multi_entry_section(
                 "estrategias",
@@ -636,7 +650,7 @@ def piar_form_page() -> rx.Component:
             ),
         ),
         accordion_section(
-            f"5. Seguimiento y evaluación ({PiarState.seguimiento.length()})",
+            f"7. Seguimiento y evaluación ({PiarState.seguimiento.length()})",
             "seguimiento",
             multi_entry_section(
                 "seguimiento",
@@ -645,7 +659,7 @@ def piar_form_page() -> rx.Component:
             ),
         ),
         accordion_section(
-            "6. Acta de acuerdos y compromisos",
+            "8. Acta de acuerdos y compromisos",
             "acta_acuerdos",
             acta_acuerdos_section(),
         ),
