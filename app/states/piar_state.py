@@ -10,44 +10,67 @@ class PiarFormat(TypedDict):
 
 
 class CaracterizacionEstudiante(TypedDict):
-    descripcion_general: str
-    talentos_intereses: str
+    estilo_ritmo_aprendizaje: str
+    fortalezas: str
+    intereses: str
+    necesidades_especiales: str
+    contexto_familiar_social: str
+
+
+class ValoracionArea(TypedDict):
+    nivel: str
+    observaciones: str
 
 
 class ValoracionPedagogica(TypedDict):
-    desempeno_academico: str
-    competencias_curriculares: str
+    lectoescritura: ValoracionArea
+    matematicas: ValoracionArea
+    ciencias_naturales: ValoracionArea
+    ciencias_sociales: ValoracionArea
+    otras_areas: ValoracionArea
 
 
-class ValoracionInterdisciplinar(TypedDict):
-    fonoaudiologia: str
-    terapia_ocupacional: str
-    psicologia: str
+class ValoracionInterdisciplinarItem(TypedDict):
+    id: int
+    disciplina: str
+    profesional_responsable: str
+    fecha_concepto: str
+    resumen_concepto: str
+    recomendaciones: str
 
 
 class ActaAcuerdos(TypedDict):
-    acuerdos: str
-    compromisos: str
+    compromisos_institucion: str
+    compromisos_familia: str
+    compromisos_estudiante: str
+    compromisos_apoyos_externos: str
+    firmas: str
+    fecha_firma: str
 
 
 class Barrera(TypedDict):
     id: int
     materia: str
     periodo: str
+    tipo_barrera: str
     descripcion: str
+    evidencias: str
 
 
 class Ajuste(TypedDict):
     id: int
     materia: str
     periodo: str
+    categoria_ajuste: str
     descripcion: str
+    recursos_requeridos: str
 
 
 class Estrategia(TypedDict):
     id: int
     materia: str
     periodo: str
+    metodo_sugerido: str
     descripcion: str
 
 
@@ -55,10 +78,14 @@ class Seguimiento(TypedDict):
     id: int
     materia: str
     periodo: str
-    descripcion: str
+    observaciones_avance: str
+    evidencias_recolectadas: str
+    acciones_mejora: str
 
 
-MultiEntrySection = Literal["barreras", "ajustes", "estrategias", "seguimiento"]
+MultiEntrySection = Literal[
+    "valoracion_interdisciplinar", "barreras", "ajustes", "estrategias", "seguimiento"
+]
 
 
 class PiarState(rx.State):
@@ -98,31 +125,73 @@ class PiarState(rx.State):
     editing_item: Optional[dict] = None
     piar_status: str = "Borrador"
     materias: list[str] = [
+        "Lengua",
         "Matemáticas",
-        "Lenguaje",
         "Ciencias Naturales",
         "Ciencias Sociales",
+        "Arte",
+        "Educación Física",
+        "Tecnología",
         "Inglés",
     ]
-    periodos: list[str] = ["Periodo 1", "Periodo 2", "Periodo 3", "Periodo 4"]
+    periodos: list[str] = [
+        "Bimestre 1",
+        "Bimestre 2",
+        "Bimestre 3",
+        "Bimestre 4",
+        "Trimestre 1",
+        "Trimestre 2",
+        "Trimestre 3",
+    ]
+    niveles_desempeno: list[str] = [
+        "Alto",
+        "Medio",
+        "Bajo",
+        "Desempeño Satisfactorio",
+        "En proceso",
+    ]
+    tipos_barrera: list[str] = [
+        "Física",
+        "Comunicativa",
+        "Curricular",
+        "Actitudinal",
+        "Otra",
+    ]
+    categorias_ajuste: list[str] = [
+        "Curricular",
+        "Tiempo de evaluación",
+        "Materiales",
+        "Participación",
+        "Apoyos humanos",
+    ]
     caracterizacion: CaracterizacionEstudiante = {
-        "descripcion_general": "",
-        "talentos_intereses": "",
+        "estilo_ritmo_aprendizaje": "",
+        "fortalezas": "",
+        "intereses": "",
+        "necesidades_especiales": "",
+        "contexto_familiar_social": "",
     }
     valoracion_pedagogica: ValoracionPedagogica = {
-        "desempeno_academico": "",
-        "competencias_curriculares": "",
+        "lectoescritura": {"nivel": "", "observaciones": ""},
+        "matematicas": {"nivel": "", "observaciones": ""},
+        "ciencias_naturales": {"nivel": "", "observaciones": ""},
+        "ciencias_sociales": {"nivel": "", "observaciones": ""},
+        "otras_areas": {"nivel": "", "observaciones": ""},
     }
-    valoracion_interdisciplinar: ValoracionInterdisciplinar = {
-        "fonoaudiologia": "",
-        "terapia_ocupacional": "",
-        "psicologia": "",
-    }
+    valoracion_observaciones_generales: str = ""
+    valoracion_interdisciplinar: list[ValoracionInterdisciplinarItem] = []
     barreras: list[Barrera] = []
     ajustes: list[Ajuste] = []
     estrategias: list[Estrategia] = []
     seguimiento: list[Seguimiento] = []
-    acta_acuerdos: ActaAcuerdos = {"acuerdos": "", "compromisos": ""}
+    acta_acuerdos: ActaAcuerdos = {
+        "compromisos_institucion": "",
+        "compromisos_familia": "",
+        "compromisos_estudiante": "",
+        "compromisos_apoyos_externos": "",
+        "firmas": "",
+        "fecha_firma": "",
+    }
 
     @rx.var
     def is_final(self) -> bool:
@@ -130,29 +199,30 @@ class PiarState(rx.State):
 
     def _load_mock_data(self):
         self.caracterizacion = {
-            "descripcion_general": "Ana es una estudiante activa y participativa en clase.",
-            "talentos_intereses": "Muestra un gran interés por el arte y la música.",
+            "estilo_ritmo_aprendizaje": "Visual y práctico",
+            "fortalezas": "Creatividad, perseverancia.",
+            "intereses": "Dibujo, construcción con bloques.",
+            "necesidades_especiales": "Dislexia diagnosticada.",
+            "contexto_familiar_social": "Apoyo familiar constante.",
         }
         self.barreras = [
             {
                 "id": 1,
                 "materia": "Matemáticas",
-                "periodo": "Periodo 1",
-                "descripcion": "Dificultad para comprender conceptos abstractos.",
-            },
-            {
-                "id": 2,
-                "materia": "Lenguaje",
-                "periodo": "Periodo 1",
-                "descripcion": "Problemas con la ortografía y la gramática.",
-            },
+                "periodo": "Trimestre 1",
+                "tipo_barrera": "Curricular",
+                "descripcion": "Dificultad para comprender conceptos abstractos sin apoyo visual.",
+                "evidencias": "Bajo rendimiento en evaluaciones escritas sin gráficos.",
+            }
         ]
         self.ajustes = [
             {
                 "id": 1,
                 "materia": "Matemáticas",
-                "periodo": "Periodo 1",
-                "descripcion": "Uso de material manipulativo para conceptos numéricos.",
+                "periodo": "Trimestre 1",
+                "categoria_ajuste": "Materiales",
+                "descripcion": "Proporcionar material concreto y manipulable (ábacos, bloques).",
+                "recursos_requeridos": "Kit de matemáticas manipulativas.",
             }
         ]
         self.piar_status = (
@@ -174,21 +244,34 @@ class PiarState(rx.State):
         """Returns to the list of PIARs and clears data."""
         self.show_piar_form = False
         self.selected_piar = None
-        self.caracterizacion = {"descripcion_general": "", "talentos_intereses": ""}
+        self.caracterizacion = {
+            "estilo_ritmo_aprendizaje": "",
+            "fortalezas": "",
+            "intereses": "",
+            "necesidades_especiales": "",
+            "contexto_familiar_social": "",
+        }
         self.valoracion_pedagogica = {
-            "desempeno_academico": "",
-            "competencias_curriculares": "",
+            "lectoescritura": {"nivel": "", "observaciones": ""},
+            "matematicas": {"nivel": "", "observaciones": ""},
+            "ciencias_naturales": {"nivel": "", "observaciones": ""},
+            "ciencias_sociales": {"nivel": "", "observaciones": ""},
+            "otras_areas": {"nivel": "", "observaciones": ""},
         }
-        self.valoracion_interdisciplinar = {
-            "fonoaudiologia": "",
-            "terapia_ocupacional": "",
-            "psicologia": "",
-        }
+        self.valoracion_observaciones_generales = ""
+        self.valoracion_interdisciplinar = []
         self.barreras = []
         self.ajustes = []
         self.estrategias = []
         self.seguimiento = []
-        self.acta_acuerdos = {"acuerdos": "", "compromisos": ""}
+        self.acta_acuerdos = {
+            "compromisos_institucion": "",
+            "compromisos_familia": "",
+            "compromisos_estudiante": "",
+            "compromisos_apoyos_externos": "",
+            "firmas": "",
+            "fecha_firma": "",
+        }
 
     @rx.event
     def toggle_accordion(self, section: str):
@@ -222,7 +305,9 @@ class PiarState(rx.State):
                 None,
             )
             if index is not None:
-                section_list[index].update(form_data)
+                updated_item = dict(section_list[index])
+                updated_item.update(form_data)
+                section_list[index] = updated_item
         else:
             new_id = max((item["id"] for item in section_list), default=0) + 1
             new_item = {"id": new_id, **form_data}
@@ -241,3 +326,7 @@ class PiarState(rx.State):
         """Autosave for single-entry text fields."""
         section_data = getattr(self, section)
         section_data[field] = value
+
+    @rx.event
+    def update_valoracion_pedagogica_field(self, area: str, field: str, value: str):
+        self.valoracion_pedagogica[area][field] = value

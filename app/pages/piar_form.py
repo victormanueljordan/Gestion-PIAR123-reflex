@@ -3,6 +3,8 @@ from app.states.piar_state import PiarState
 
 
 def item_modal() -> rx.Component:
+    is_interdisciplinar = PiarState.editing_section == "valoracion_interdisciplinar"
+    default_item = PiarState.editing_item
     return rx.el.dialog(
         rx.el.div(
             class_name="fixed inset-0 bg-black/50 backdrop-blur-sm z-40",
@@ -12,49 +14,288 @@ def item_modal() -> rx.Component:
             rx.el.form(
                 rx.el.h2(
                     rx.cond(
-                        PiarState.editing_item,
+                        PiarState.editing_item.is_not_none(),
                         "Editar Registro",
                         "Añadir Nuevo Registro",
                     ),
-                    class_name="text-lg font-bold text-neutral-800 mb-4 p-6 border-b",
+                    class_name="text-lg font-bold text-neutral-800 p-6 border-b",
                 ),
                 rx.el.div(
-                    rx.el.label("Materia/Área", class_name="text-sm font-medium"),
-                    rx.el.select(
-                        rx.foreach(
-                            PiarState.materias, lambda m: rx.el.option(m, value=m)
+                    rx.cond(
+                        ~is_interdisciplinar,
+                        rx.el.div(
+                            rx.el.div(
+                                rx.el.label(
+                                    "Materia/Área", class_name="text-sm font-medium"
+                                ),
+                                rx.el.select(
+                                    rx.foreach(
+                                        PiarState.materias,
+                                        lambda m: rx.el.option(m, value=m),
+                                    ),
+                                    name="materia",
+                                    default_value=default_item["materia"].to(str),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="mb-4",
+                            ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Periodo", class_name="text-sm font-medium"
+                                ),
+                                rx.el.select(
+                                    rx.foreach(
+                                        PiarState.periodos,
+                                        lambda p: rx.el.option(p, value=p),
+                                    ),
+                                    name="periodo",
+                                    default_value=default_item["periodo"].to(str),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="mb-4",
+                            ),
+                            class_name="grid grid-cols-2 gap-4",
                         ),
-                        name="materia",
-                        default_value=PiarState.editing_item["materia"].to(str),
-                        class_name="mt-1 w-full p-2 border rounded-md",
-                        disabled=PiarState.is_final,
+                        rx.fragment(),
                     ),
-                    class_name="mb-4",
-                ),
-                rx.el.div(
-                    rx.el.label("Periodo", class_name="text-sm font-medium"),
-                    rx.el.select(
-                        rx.foreach(
-                            PiarState.periodos, lambda p: rx.el.option(p, value=p)
+                    rx.cond(
+                        is_interdisciplinar,
+                        rx.el.div(
+                            rx.el.div(
+                                rx.el.label(
+                                    "Disciplina/Área Profesional",
+                                    class_name="text-sm font-medium",
+                                ),
+                                rx.el.input(
+                                    name="disciplina",
+                                    default_value=default_item["disciplina"].to(str),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="mb-4 col-span-2",
+                            ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Profesional Responsable",
+                                    class_name="text-sm font-medium",
+                                ),
+                                rx.el.input(
+                                    name="profesional_responsable",
+                                    default_value=default_item[
+                                        "profesional_responsable"
+                                    ].to(str),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="mb-4",
+                            ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Fecha de Concepto",
+                                    class_name="text-sm font-medium",
+                                ),
+                                rx.el.input(
+                                    name="fecha_concepto",
+                                    type_="date",
+                                    default_value=default_item["fecha_concepto"].to(
+                                        str
+                                    ),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="mb-4",
+                            ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Resumen del Concepto",
+                                    class_name="text-sm font-medium",
+                                ),
+                                rx.el.textarea(
+                                    name="resumen_concepto",
+                                    default_value=default_item["resumen_concepto"].to(
+                                        str
+                                    ),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    rows=3,
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="mb-4 col-span-2",
+                            ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Recomendaciones", class_name="text-sm font-medium"
+                                ),
+                                rx.el.textarea(
+                                    name="recomendaciones",
+                                    default_value=default_item["recomendaciones"].to(
+                                        str
+                                    ),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    rows=3,
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="mb-4 col-span-2",
+                            ),
+                            class_name="grid grid-cols-2 gap-4",
                         ),
-                        name="periodo",
-                        default_value=PiarState.editing_item["periodo"].to(str),
-                        class_name="mt-1 w-full p-2 border rounded-md",
-                        disabled=PiarState.is_final,
+                        rx.fragment(),
                     ),
-                    class_name="mb-4",
-                ),
-                rx.el.div(
-                    rx.el.label("Descripción", class_name="text-sm font-medium"),
-                    rx.el.textarea(
-                        name="descripcion",
-                        default_value=PiarState.editing_item["descripcion"].to(str),
-                        class_name="mt-1 w-full p-2 border rounded-md",
-                        rows=4,
-                        placeholder="Describa el registro...",
-                        disabled=PiarState.is_final,
+                    rx.cond(
+                        PiarState.editing_section == "barreras",
+                        rx.el.div(
+                            rx.el.label(
+                                "Tipo de Barrera", class_name="text-sm font-medium"
+                            ),
+                            rx.el.select(
+                                rx.foreach(
+                                    PiarState.tipos_barrera,
+                                    lambda t: rx.el.option(t, value=t),
+                                ),
+                                name="tipo_barrera",
+                                default_value=default_item["tipo_barrera"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                disabled=PiarState.is_final,
+                            ),
+                            rx.el.label(
+                                "Descripción de la Barrera",
+                                class_name="text-sm font-medium mt-4",
+                            ),
+                            rx.el.textarea(
+                                name="descripcion",
+                                default_value=default_item["descripcion"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                            rx.el.label(
+                                "Evidencias/Ejemplos",
+                                class_name="text-sm font-medium mt-4",
+                            ),
+                            rx.el.textarea(
+                                name="evidencias",
+                                default_value=default_item["evidencias"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                        ),
+                        rx.fragment(),
                     ),
-                    class_name="mb-4",
+                    rx.cond(
+                        PiarState.editing_section == "ajustes",
+                        rx.el.div(
+                            rx.el.label(
+                                "Categoría de Ajuste", class_name="text-sm font-medium"
+                            ),
+                            rx.el.select(
+                                rx.foreach(
+                                    PiarState.categorias_ajuste,
+                                    lambda c: rx.el.option(c, value=c),
+                                ),
+                                name="categoria_ajuste",
+                                default_value=default_item["categoria_ajuste"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                disabled=PiarState.is_final,
+                            ),
+                            rx.el.label(
+                                "Descripción del Ajuste",
+                                class_name="text-sm font-medium mt-4",
+                            ),
+                            rx.el.textarea(
+                                name="descripcion",
+                                default_value=default_item["descripcion"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                            rx.el.label(
+                                "Recursos Requeridos",
+                                class_name="text-sm font-medium mt-4",
+                            ),
+                            rx.el.textarea(
+                                name="recursos_requeridos",
+                                default_value=default_item["recursos_requeridos"].to(
+                                    str
+                                ),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                        ),
+                        rx.fragment(),
+                    ),
+                    rx.cond(
+                        PiarState.editing_section == "estrategias",
+                        rx.el.div(
+                            rx.el.label(
+                                "Método Sugerido", class_name="text-sm font-medium"
+                            ),
+                            rx.el.input(
+                                name="metodo_sugerido",
+                                default_value=default_item["metodo_sugerido"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                disabled=PiarState.is_final,
+                            ),
+                            rx.el.label(
+                                "Descripción de la Estrategia",
+                                class_name="text-sm font-medium mt-4",
+                            ),
+                            rx.el.textarea(
+                                name="descripcion",
+                                default_value=default_item["descripcion"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                        ),
+                        rx.fragment(),
+                    ),
+                    rx.cond(
+                        PiarState.editing_section == "seguimiento",
+                        rx.el.div(
+                            rx.el.label(
+                                "Observaciones del Avance",
+                                class_name="text-sm font-medium",
+                            ),
+                            rx.el.textarea(
+                                name="observaciones_avance",
+                                default_value=default_item["observaciones_avance"].to(
+                                    str
+                                ),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                            rx.el.label(
+                                "Evidencias Recolectadas",
+                                class_name="text-sm font-medium mt-4",
+                            ),
+                            rx.el.textarea(
+                                name="evidencias_recolectadas",
+                                default_value=default_item[
+                                    "evidencias_recolectadas"
+                                ].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                            rx.el.label(
+                                "Acciones de Mejora o Próximos Pasos",
+                                class_name="text-sm font-medium mt-4",
+                            ),
+                            rx.el.textarea(
+                                name="acciones_mejora",
+                                default_value=default_item["acciones_mejora"].to(str),
+                                class_name="mt-1 w-full p-2 border rounded-md",
+                                rows=3,
+                                disabled=PiarState.is_final,
+                            ),
+                        ),
+                        rx.fragment(),
+                    ),
+                    class_name="p-6 h-96 overflow-y-auto",
                 ),
                 rx.el.div(
                     rx.el.button(
@@ -67,14 +308,14 @@ def item_modal() -> rx.Component:
                         "Guardar",
                         type_="submit",
                         class_name="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg",
+                        disabled=PiarState.is_final,
                     ),
                     class_name="flex justify-end gap-4 p-6 border-t",
                 ),
                 on_submit=PiarState.save_item,
                 reset_on_submit=True,
-                class_name="p-6",
             ),
-            class_name="bg-white rounded-xl shadow-2xl w-full max-w-lg flex flex-col z-50",
+            class_name="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col z-50",
         ),
         open=PiarState.show_item_modal,
         class_name="fixed inset-0 open:flex items-center justify-center p-4 z-50",
@@ -92,7 +333,7 @@ def text_area_field(
             placeholder=placeholder,
             on_change=on_change,
             class_name="w-full p-2 border border-neutral-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500",
-            rows=5,
+            rows=4,
             disabled=PiarState.is_final,
             default_value=value,
         ),
@@ -100,34 +341,35 @@ def text_area_field(
     )
 
 
-def single_entry_section(section_name: str, fields: dict) -> rx.Component:
+def single_entry_section(section_name: str, fields: list[dict]) -> rx.Component:
     return rx.el.div(
         rx.foreach(
-            list(fields.items()),
+            fields,
             lambda field: text_area_field(
-                field[1]["label"],
-                field[1]["placeholder"],
-                getattr(PiarState, section_name)[field[0]],
+                field["label"],
+                field["placeholder"],
+                PiarState.caracterizacion[field["name"]],
                 lambda val: PiarState.update_single_entry_field(
-                    section_name, field[0], val
+                    section_name, field["name"], val
                 ),
             ),
         )
     )
 
 
-def multi_entry_section(section_key: str, items: rx.Var[list]) -> rx.Component:
-    columns = ["Materia/Área", "Periodo", "Descripción", "Acciones"]
+def multi_entry_section(
+    section_key: str, items: rx.Var[list], columns: list[str]
+) -> rx.Component:
     return rx.el.div(
         rx.el.div(
             rx.el.table(
                 rx.el.thead(
                     rx.el.tr(
                         rx.foreach(
-                            columns,
+                            columns + ["Acciones"],
                             lambda col: rx.el.th(
                                 col,
-                                class_name="px-4 py-2 text-left text-sm font-semibold",
+                                class_name="px-4 py-2 text-left text-sm font-semibold text-neutral-600 bg-neutral-50",
                             ),
                         )
                     )
@@ -136,11 +378,16 @@ def multi_entry_section(section_key: str, items: rx.Var[list]) -> rx.Component:
                     rx.foreach(
                         items,
                         lambda item: rx.el.tr(
-                            rx.el.td(item["materia"], class_name="px-4 py-2 border-t"),
-                            rx.el.td(item["periodo"], class_name="px-4 py-2 border-t"),
-                            rx.el.td(
-                                item["descripcion"],
-                                class_name="px-4 py-2 border-t max-w-xs truncate",
+                            rx.foreach(
+                                columns,
+                                lambda col_key: rx.el.td(
+                                    item[
+                                        col_key.lower()
+                                        .replace(" ", "_")
+                                        .replace("/", "_")
+                                    ],
+                                    class_name="px-4 py-2 border-t max-w-xs truncate",
+                                ),
                             ),
                             rx.el.td(
                                 rx.el.div(
@@ -195,8 +442,109 @@ def accordion_section(
             on_click=lambda: PiarState.toggle_accordion(section_key),
             class_name="w-full p-4 text-left bg-neutral-100 rounded-t-lg",
         ),
-        rx.cond(is_open, rx.el.div(content, class_name="p-6"), rx.fragment()),
-        class_name="bg-white border border-neutral-200 rounded-lg shadow-sm mb-4",
+        rx.cond(is_open, rx.el.div(content, class_name="p-6 bg-white"), rx.fragment()),
+        class_name="border border-neutral-200 rounded-lg shadow-sm mb-4",
+    )
+
+
+def valoracion_pedagogica_section() -> rx.Component:
+    areas = [
+        ("lectoescritura", "Lectoescritura"),
+        ("matematicas", "Matemáticas"),
+        ("ciencias_naturales", "Ciencias Naturales"),
+        ("ciencias_sociales", "Ciencias Sociales"),
+        ("otras_areas", "Otras Áreas (Arte, Ed. Física, etc)"),
+    ]
+    return rx.el.div(
+        rx.foreach(
+            areas,
+            lambda area: rx.el.div(
+                rx.el.h3(
+                    area[1], class_name="font-semibold text-md text-neutral-700 mb-2"
+                ),
+                rx.el.div(
+                    rx.el.div(
+                        rx.el.label("Nivel", class_name="text-sm font-medium"),
+                        rx.el.select(
+                            rx.foreach(
+                                PiarState.niveles_desempeno,
+                                lambda n: rx.el.option(n, value=n),
+                            ),
+                            default_value=PiarState.valoracion_pedagogica[area[0]][
+                                "nivel"
+                            ],
+                            on_change=lambda val: PiarState.update_valoracion_pedagogica_field(
+                                area[0], "nivel", val
+                            ),
+                            class_name="mt-1 w-full p-2 border rounded-md",
+                            disabled=PiarState.is_final,
+                        ),
+                        class_name="flex-1",
+                    ),
+                    rx.el.div(
+                        rx.el.label("Observaciones", class_name="text-sm font-medium"),
+                        rx.el.textarea(
+                            default_value=PiarState.valoracion_pedagogica[area[0]][
+                                "observaciones"
+                            ],
+                            on_change=lambda val: PiarState.update_valoracion_pedagogica_field(
+                                area[0], "observaciones", val
+                            ),
+                            class_name="mt-1 w-full p-2 border rounded-md",
+                            rows=3,
+                            disabled=PiarState.is_final,
+                        ),
+                        class_name="flex-1",
+                    ),
+                    class_name="grid md:grid-cols-2 gap-4",
+                ),
+                class_name="mb-6 p-4 border rounded-md bg-neutral-50",
+            ),
+        ),
+        text_area_field(
+            "Observaciones Generales",
+            "Resumen del desempeño global del estudiante...",
+            PiarState.valoracion_observaciones_generales,
+            PiarState.set_valoracion_observaciones_generales,
+        ),
+    )
+
+
+def acta_acuerdos_section() -> rx.Component:
+    fields = [
+        ("compromisos_institucion", "Compromisos de la institución educativa"),
+        ("compromisos_familia", "Compromisos de la familia"),
+        ("compromisos_estudiante", "Compromisos del estudiante"),
+        ("compromisos_apoyos_externos", "Compromisos de apoyos externos"),
+        ("firmas", "Firmas (docente, acudiente, etc.)"),
+    ]
+    return rx.el.div(
+        rx.foreach(
+            fields,
+            lambda f: text_area_field(
+                f[1],
+                f"Describa los {f[1].lower()}...",
+                PiarState.acta_acuerdos[f[0]],
+                lambda val: PiarState.update_single_entry_field(
+                    "acta_acuerdos", f[0], val
+                ),
+            ),
+        ),
+        rx.el.div(
+            rx.el.label(
+                "Fecha de Firma",
+                class_name="block text-sm font-medium text-neutral-700 mb-1",
+            ),
+            rx.el.input(
+                type_="date",
+                default_value=PiarState.acta_acuerdos["fecha_firma"],
+                on_change=lambda val: PiarState.update_single_entry_field(
+                    "acta_acuerdos", "fecha_firma", val
+                ),
+                class_name="w-full md:w-1/3 p-2 border rounded-md",
+                disabled=PiarState.is_final,
+            ),
+        ),
     )
 
 
@@ -235,92 +583,89 @@ def piar_form_page() -> rx.Component:
             "caracterizacion",
             single_entry_section(
                 "caracterizacion",
-                {
-                    "descripcion_general": {
-                        "label": "Descripción general del estudiante",
-                        "placeholder": "Fortalezas, gustos, intereses, motivaciones...",
+                [
+                    {
+                        "name": "estilo_ritmo_aprendizaje",
+                        "label": "Estilo y ritmo de aprendizaje",
+                        "placeholder": "Describa cómo aprende mejor el estudiante...",
                     },
-                    "talentos_intereses": {
-                        "label": "Talentos e intereses especiales",
-                        "placeholder": "Actividades en las que destaca o disfruta...",
+                    {
+                        "name": "fortalezas",
+                        "label": "Fortalezas",
+                        "placeholder": "Habilidades, talentos y puntos fuertes...",
                     },
-                },
+                    {
+                        "name": "intereses",
+                        "label": "Intereses",
+                        "placeholder": "Gustos, motivaciones y temas de interés...",
+                    },
+                    {
+                        "name": "necesidades_especiales",
+                        "label": "Necesidades educativas especiales identificadas",
+                        "placeholder": "Diagnósticos, barreras específicas...",
+                    },
+                    {
+                        "name": "contexto_familiar_social",
+                        "label": "Contexto familiar/social relevante",
+                        "placeholder": "Aspectos del entorno que influyen en el aprendizaje...",
+                    },
+                ],
             ),
         ),
         accordion_section(
             "2. Valoración pedagógica",
             "valoracion_pedagogica",
-            single_entry_section(
-                "valoracion_pedagogica",
-                {
-                    "desempeno_academico": {
-                        "label": "Desempeño académico general",
-                        "placeholder": "Cómo le va en las diferentes áreas...",
-                    },
-                    "competencias_curriculares": {
-                        "label": "Competencias curriculares",
-                        "placeholder": "Habilidades y conocimientos por área...",
-                    },
-                },
-            ),
+            valoracion_pedagogica_section(),
         ),
         accordion_section(
-            "3. Valoración interdisciplinar (si aplica)",
+            f"3. Valoración interdisciplinar ({PiarState.valoracion_interdisciplinar.length()})",
             "valoracion_interdisciplinar",
-            single_entry_section(
+            multi_entry_section(
                 "valoracion_interdisciplinar",
-                {
-                    "fonoaudiologia": {
-                        "label": "Fonoaudiología",
-                        "placeholder": "Informe o resumen...",
-                    },
-                    "terapia_ocupacional": {
-                        "label": "Terapia Ocupacional",
-                        "placeholder": "Informe o resumen...",
-                    },
-                    "psicologia": {
-                        "label": "Psicología",
-                        "placeholder": "Informe o resumen...",
-                    },
-                },
+                PiarState.valoracion_interdisciplinar,
+                ["Disciplina", "Profesional Responsable", "Fecha Concepto"],
             ),
         ),
         accordion_section(
             f"4. Barreras para el aprendizaje ({PiarState.barreras.length()})",
             "barreras",
-            multi_entry_section("barreras", PiarState.barreras),
+            multi_entry_section(
+                "barreras",
+                PiarState.barreras,
+                ["Materia", "Periodo", "Tipo Barrera", "Descripción"],
+            ),
         ),
         accordion_section(
             f"5. Ajustes razonables ({PiarState.ajustes.length()})",
             "ajustes",
-            multi_entry_section("ajustes", PiarState.ajustes),
+            multi_entry_section(
+                "ajustes",
+                PiarState.ajustes,
+                ["Materia", "Periodo", "Categoría Ajuste", "Descripción"],
+            ),
         ),
         accordion_section(
             f"6. Estrategias pedagógicas ({PiarState.estrategias.length()})",
             "estrategias",
-            multi_entry_section("estrategias", PiarState.estrategias),
+            multi_entry_section(
+                "estrategias",
+                PiarState.estrategias,
+                ["Materia", "Periodo", "Método Sugerido"],
+            ),
         ),
         accordion_section(
             f"7. Seguimiento y evaluación ({PiarState.seguimiento.length()})",
             "seguimiento",
-            multi_entry_section("seguimiento", PiarState.seguimiento),
+            multi_entry_section(
+                "seguimiento",
+                PiarState.seguimiento,
+                ["Materia", "Periodo", "Observaciones Avance"],
+            ),
         ),
         accordion_section(
             "8. Acta de acuerdos y compromisos",
             "acta_acuerdos",
-            single_entry_section(
-                "acta_acuerdos",
-                {
-                    "acuerdos": {
-                        "label": "Acuerdos",
-                        "placeholder": "Acuerdos entre la institución, la familia y el estudiante...",
-                    },
-                    "compromisos": {
-                        "label": "Compromisos",
-                        "placeholder": "Compromisos de cada una de las partes...",
-                    },
-                },
-            ),
+            acta_acuerdos_section(),
         ),
         class_name="w-full max-w-6xl mx-auto pb-12",
     )
