@@ -14,6 +14,14 @@ def piar_actions(piar: PiarFormat) -> rx.Component:
             on_click=lambda: PiarState.select_piar_for_editing(piar),
             class_name="p-2 hover:bg-neutral-200 rounded-md",
         ),
+        rx.el.div(
+            rx.el.button(
+                rx.icon("bot", class_name="h-4 w-4"),
+                on_click=lambda: PiarState.open_assistant_form(piar),
+                class_name="p-2 hover:bg-neutral-200 rounded-md",
+            ),
+            title="Asistente PIAR",
+        ),
         rx.el.button(
             rx.icon("trash-2", class_name="h-4 w-4 text-red-500"),
             class_name="p-2 hover:bg-neutral-200 rounded-md",
@@ -109,13 +117,20 @@ def piar_list_view() -> rx.Component:
     )
 
 
+from .piar_assistant_page import piar_assistant_page
+
+
 def piar_formats_page() -> rx.Component:
     """Page for managing PIAR formats."""
     return rx.el.div(
         rx.cond(
-            PiarState.show_piar_form & PiarState.selected_piar.is_not_none(),
-            piar_form_page(),
-            piar_list_view(),
+            PiarState.show_assistant_form,
+            piar_assistant_page(),
+            rx.cond(
+                PiarState.show_piar_form & PiarState.selected_piar.is_not_none(),
+                piar_form_page(),
+                piar_list_view(),
+            ),
         ),
         class_name="w-full",
     )

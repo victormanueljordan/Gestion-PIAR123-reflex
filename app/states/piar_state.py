@@ -118,6 +118,7 @@ class PiarState(rx.State):
         },
     ]
     show_piar_form: bool = False
+    show_assistant_form: bool = False
     selected_piar: Optional[PiarFormat] = None
     active_accordion: set[str] = set()
     show_item_modal: bool = False
@@ -192,6 +193,14 @@ class PiarState(rx.State):
         "firmas": "",
         "fecha_firma": "",
     }
+    show_chat: bool = False
+    chat_messages: list[dict] = []
+    assistant_form_data: dict = {
+        "materia": "",
+        "periodo": "",
+        "dificultad_observada": "",
+        "evidencias": "",
+    }
 
     @rx.var
     def is_final(self) -> bool:
@@ -240,9 +249,18 @@ class PiarState(rx.State):
         self.active_accordion = set()
 
     @rx.event
+    def open_assistant_form(self, piar: PiarFormat):
+        self.selected_piar = piar
+        self._load_mock_data()
+        self.show_assistant_form = True
+        self.show_chat = False
+        self.chat_messages = []
+
+    @rx.event
     def return_to_piar_list(self):
         """Returns to the list of PIARs and clears data."""
         self.show_piar_form = False
+        self.show_assistant_form = False
         self.selected_piar = None
         self.caracterizacion = {
             "estilo_ritmo_aprendizaje": "",
@@ -292,6 +310,20 @@ class PiarState(rx.State):
         self.show_item_modal = False
         self.editing_item = None
         self.editing_section = None
+
+    @rx.event
+    def toggle_chat(self):
+        self.show_chat = not self.show_chat
+        if self.show_chat and (not self.chat_messages):
+            student_name = (
+                self.selected_piar["student_name"] if self.selected_piar else "docente"
+            )
+            self.chat_messages.append(
+                {
+                    "sender": "assistant",
+                    "message": f"¡Hola! Soy tu asistente pedagógico. ¿Cómo puedo ayudarte hoy a definir las barreras y ajustes para {student_name}?",
+                }
+            )
 
     @rx.event
     def save_item(self, form_data: dict):
