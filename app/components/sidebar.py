@@ -11,13 +11,9 @@ def sidebar_item(name: Page, icon: str) -> rx.Component:
                 name,
                 class_name=rx.cond(
                     AppState.sidebar_open,
-                    "opacity-100 translate-x-0",
-                    "opacity-0 -translate-x-3",
+                    "opacity-100 translate-x-0 transition-all duration-200 delay-100",
+                    "opacity-0 w-0 overflow-hidden transition-all duration-200",
                 ),
-                style={
-                    "transition": "opacity 0.2s ease-in-out, transform 0.2s ease-in-out",
-                    "transition_delay": "0.1s",
-                },
             ),
             class_name="flex items-center gap-3",
         ),
