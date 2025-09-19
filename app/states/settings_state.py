@@ -1,5 +1,28 @@
 import reflex as rx
 from typing import TypedDict, Optional
+import logging
+
+
+class Grupo(TypedDict):
+    id: int
+    nombre: str
+
+
+class Grado(TypedDict):
+    id: int
+    nombre: str
+    grupos: list[Grupo]
+
+
+class Asignatura(TypedDict):
+    id: int
+    nombre: str
+
+
+class Area(TypedDict):
+    id: int
+    nombre: str
+    asignaturas: list[Asignatura]
 
 
 class Sede(TypedDict):
@@ -24,6 +47,27 @@ class InstitucionData(TypedDict):
     logo: str
     color_primario: str
     color_secundario: str
+
+
+class Periodo(TypedDict):
+    id: int
+    nombre: str
+    fecha_inicio: str
+    fecha_fin: str
+    activo: bool
+
+
+class AnoLectivoData(TypedDict):
+    ano_activo: int
+    fecha_inicio: str
+    fecha_fin: str
+    esquema_periodos: str
+    fecha_limite_cierre: str
+
+
+class CatalogoItem(TypedDict):
+    id: int
+    nombre: str
 
 
 class SettingsState(rx.State):
@@ -53,6 +97,142 @@ class SettingsState(rx.State):
             "telefono": "3009876543",
             "email": "principal@example.com",
         }
+    ]
+
+    @rx.event
+    def update_ano_lectivo_field(self, field: str, value: str):
+        if field == "ano_activo":
+            try:
+                self.ano_lectivo[field] = int(value)
+            except (ValueError, TypeError) as e:
+                logging.exception(f"Error converting year to int: {e}")
+                return rx.toast.error("El año debe ser un número.")
+        else:
+            self.ano_lectivo[field] = value
+        return rx.toast.success("Campo de año lectivo actualizado")
+
+    @rx.event
+    def add_periodo(self):
+        new_id = max((p["id"] for p in self.periodos), default=0) + 1
+        self.periodos.append(
+            {
+                "id": new_id,
+                "nombre": f"Nuevo Periodo {new_id}",
+                "fecha_inicio": "",
+                "fecha_fin": "",
+                "activo": False,
+            }
+        )
+        return rx.toast.success("Nuevo periodo añadido.")
+
+    @rx.event
+    def update_periodo(self, periodo_id: int, field: str, value):
+        for i, periodo in enumerate(self.periodos):
+            if periodo["id"] == periodo_id:
+                self.periodos[i][field] = value
+                break
+        return rx.toast.success("Periodo actualizado.")
+
+    @rx.event
+    def delete_periodo(self, periodo_id: int):
+        self.periodos = [p for p in self.periodos if p["id"] != periodo_id]
+        return rx.toast.error("Periodo eliminado.")
+
+    def _get_next_catalogo_id(self, catalogo_name: str) -> int:
+        catalogo_list = getattr(self, catalogo_name)
+        if not catalogo_list:
+            return 1
+        return max((item["id"] for item in catalogo_list)) + 1
+
+    @rx.event
+    def add_catalogo_item(self, catalogo_name: str, form_data: dict):
+        if not form_data.get("nombre"):
+            return rx.toast.error("El nombre no puede estar vacío.")
+        catalogo_list = getattr(self, catalogo_name)
+        new_id = self._get_next_catalogo_id(catalogo_name)
+        catalogo_list.append({"id": new_id, "nombre": form_data["nombre"]})
+        return rx.toast.success("Elemento añadido.")
+
+    @rx.event
+    def update_catalogo_item(self, catalogo_name: str, item_id: int, new_name: str):
+        catalogo_list = getattr(self, catalogo_name)
+        for i, item in enumerate(catalogo_list):
+            if item["id"] == item_id:
+                catalogo_list[i]["nombre"] = new_name
+                break
+        return rx.toast.success("Elemento actualizado.")
+
+    @rx.event
+    def delete_catalogo_item(self, catalogo_name: str, item_id: int):
+        catalogo_list = getattr(self, catalogo_name)
+        setattr(
+            self,
+            catalogo_name,
+            [item for item in catalogo_list if item["id"] != item_id],
+        )
+        return rx.toast.error("Elemento eliminado.")
+
+    ano_lectivo: AnoLectivoData = {
+        "ano_activo": 2024,
+        "fecha_inicio": "2024-02-01",
+        "fecha_fin": "2024-11-30",
+        "esquema_periodos": "Bimestres",
+        "fecha_limite_cierre": "2024-11-15",
+    }
+    periodos: list[Periodo] = [
+        {
+            "id": 1,
+            "nombre": "Bimestre 1",
+            "fecha_inicio": "2024-02-01",
+            "fecha_fin": "2024-04-05",
+            "activo": False,
+        },
+        {
+            "id": 2,
+            "nombre": "Bimestre 2",
+            "fecha_inicio": "2024-04-08",
+            "fecha_fin": "2024-06-14",
+            "activo": True,
+        },
+    ]
+    catalogo_tipos_barrera: list[CatalogoItem] = [
+        {"id": 1, "nombre": "Física"},
+        {"id": 2, "nombre": "Comunicativa"},
+    ]
+    catalogo_categorias_ajuste: list[CatalogoItem] = [
+        {"id": 1, "nombre": "Curricular"},
+        {"id": 2, "nombre": "Tiempos de evaluación"},
+    ]
+    catalogo_metodos: list[CatalogoItem] = [
+        {"id": 1, "nombre": "Aprendizaje cooperativo"},
+        {"id": 2, "nombre": "Proyectos"},
+    ]
+    catalogo_tipos_evidencia: list[CatalogoItem] = [
+        {"id": 1, "nombre": "Trabajos escritos"},
+        {"id": 2, "nombre": "Observaciones en clase"},
+    ]
+    grados: list[Grado] = [
+        {
+            "id": 1,
+            "nombre": "Primero",
+            "grupos": [{"id": 101, "nombre": "1-A"}, {"id": 102, "nombre": "1-B"}],
+        },
+        {"id": 2, "nombre": "Segundo", "grupos": [{"id": 201, "nombre": "2-A"}]},
+    ]
+    areas: list[Area] = [
+        {
+            "id": 1,
+            "nombre": "Ciencias Naturales",
+            "asignaturas": [
+                {"id": 101, "nombre": "Biología"},
+                {"id": 102, "nombre": "Química"},
+            ],
+        },
+        {
+            "id": 2,
+            "nombre": "Matemáticas",
+            "asignaturas": [{"id": 201, "nombre": "Álgebra"}],
+        },
     ]
 
     @rx.event
@@ -126,3 +306,102 @@ class SettingsState(rx.State):
     def delete_sede(self, sede_id: int):
         self.sedes = [s for s in self.sedes if s["id"] != sede_id]
         return rx.toast.error("Sede eliminada.")
+
+    @rx.event
+    def add_grado(self):
+        new_id = max((g["id"] for g in self.grados), default=0) + 1
+        self.grados.append(
+            {"id": new_id, "nombre": f"Nuevo Grado {new_id}", "grupos": []}
+        )
+
+    @rx.event
+    def update_grado_nombre(self, grado_id: int, nombre: str):
+        for i, grado in enumerate(self.grados):
+            if grado["id"] == grado_id:
+                self.grados[i]["nombre"] = nombre
+                break
+
+    @rx.event
+    def delete_grado(self, grado_id: int):
+        self.grados = [g for g in self.grados if g["id"] != grado_id]
+
+    @rx.event
+    def add_grupo(self, grado_id: int):
+        for i, grado in enumerate(self.grados):
+            if grado["id"] == grado_id:
+                new_id = (
+                    max((g["id"] for g in grado["grupos"]), default=grado_id * 100) + 1
+                )
+                self.grados[i]["grupos"].append(
+                    {"id": new_id, "nombre": f"Grupo {new_id}"}
+                )
+                break
+
+    @rx.event
+    def update_grupo_nombre(self, grado_id: int, grupo_id: int, nombre: str):
+        for i, grado in enumerate(self.grados):
+            if grado["id"] == grado_id:
+                for j, grupo in enumerate(grado["grupos"]):
+                    if grupo["id"] == grupo_id:
+                        self.grados[i]["grupos"][j]["nombre"] = nombre
+                        break
+                break
+
+    @rx.event
+    def delete_grupo(self, grado_id: int, grupo_id: int):
+        for i, grado in enumerate(self.grados):
+            if grado["id"] == grado_id:
+                self.grados[i]["grupos"] = [
+                    g for g in grado["grupos"] if g["id"] != grupo_id
+                ]
+                break
+
+    @rx.event
+    def add_area(self):
+        new_id = max((a["id"] for a in self.areas), default=0) + 1
+        self.areas.append(
+            {"id": new_id, "nombre": f"Nueva Área {new_id}", "asignaturas": []}
+        )
+
+    @rx.event
+    def update_area_nombre(self, area_id: int, nombre: str):
+        for i, area in enumerate(self.areas):
+            if area["id"] == area_id:
+                self.areas[i]["nombre"] = nombre
+                break
+
+    @rx.event
+    def delete_area(self, area_id: int):
+        self.areas = [a for a in self.areas if a["id"] != area_id]
+
+    @rx.event
+    def add_asignatura(self, area_id: int):
+        for i, area in enumerate(self.areas):
+            if area["id"] == area_id:
+                new_id = (
+                    max((a["id"] for a in area["asignaturas"]), default=area_id * 100)
+                    + 1
+                )
+                self.areas[i]["asignaturas"].append(
+                    {"id": new_id, "nombre": f"Asignatura {new_id}"}
+                )
+                break
+
+    @rx.event
+    def update_asignatura_nombre(self, area_id: int, asignatura_id: int, nombre: str):
+        for i, area in enumerate(self.areas):
+            if area["id"] == area_id:
+                for j, asignatura in enumerate(area["asignaturas"]):
+                    if asignatura["id"] == asignatura_id:
+                        self.areas[i]["asignaturas"][j]["nombre"] = nombre
+                        break
+                break
+
+    @rx.event
+    def delete_asignatura(self, area_id: int, asignatura_id: int):
+        for i, area in enumerate(self.areas):
+            if area["id"] == area_id:
+                self.areas[i]["asignaturas"] = [
+                    a for a in area["asignaturas"] if a["id"] != asignatura_id
+                ]
+                break
