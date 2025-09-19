@@ -39,6 +39,7 @@ def form_input(
     type: str = "text",
     required: bool = False,
     disabled: bool = False,
+    **kwargs,
 ) -> rx.Component:
     return rx.el.div(
         rx.el.label(
@@ -55,6 +56,7 @@ def form_input(
             required=required,
             disabled=disabled,
             class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-neutral-50",
+            **kwargs,
         ),
         class_name="w-full",
     )
@@ -704,6 +706,191 @@ def docentes_y_roles_content() -> rx.Component:
         crud_catalogo_section(
             "Roles del personal", SettingsState.catalogo_roles, "catalogo_roles"
         ),
+        class_name="grid md:grid-cols-2 gap-8",
+    )
+
+
+def form_checkbox(
+    label: str, name: str, is_checked: rx.Var[bool], on_change
+) -> rx.Component:
+    return rx.el.div(
+        rx.el.label(
+            rx.el.input(
+                type="checkbox",
+                name=name,
+                is_checked=is_checked,
+                on_change=on_change,
+                class_name="h-4 w-4 text-indigo-600 border-neutral-300 rounded focus:ring-indigo-500 mr-2",
+            ),
+            label,
+            class_name="flex items-center text-sm font-medium text-neutral-700",
+        )
+    )
+
+
+def form_textarea(
+    label: str, name: str, value: rx.Var, on_change, placeholder: str, rows: int = 4
+) -> rx.Component:
+    return rx.el.div(
+        rx.el.label(
+            label, class_name="block text-sm font-medium text-neutral-700 mb-1"
+        ),
+        rx.el.textarea(
+            name=name,
+            default_value=value,
+            on_change=on_change,
+            placeholder=placeholder,
+            rows=rows,
+            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+        ),
+        class_name="w-full",
+    )
+
+
+def piar_params_content() -> rx.Component:
+    return rx.el.div(
+        rx.el.h4(
+            "Flujos de Aprobación",
+            class_name="text-md font-semibold text-neutral-700 mb-2 border-b pb-2",
+        ),
+        form_checkbox(
+            "Requerir aprobación para finalizar un PIAR",
+            "requiere_aprobacion",
+            SettingsState.piar_params["requiere_aprobacion"],
+            lambda v: SettingsState.update_piar_params_field("requiere_aprobacion", v),
+        ),
+        rx.cond(
+            SettingsState.piar_params["requiere_aprobacion"],
+            form_multiselect(
+                "Roles que deben aprobar",
+                "flujo_aprobacion",
+                SettingsState.piar_params["flujo_aprobacion"],
+                lambda _, opt: SettingsState.toggle_piar_params_aprobacion(opt),
+                SettingsState.catalogo_roles.pluck("nombre"),
+            ),
+            rx.fragment(),
+        ),
+        rx.el.h4(
+            "Notificaciones y Plazos",
+            class_name="text-md font-semibold text-neutral-700 mt-6 mb-2 border-b pb-2",
+        ),
+        form_checkbox(
+            "Notificar a padres/acudientes sobre actualizaciones importantes del PIAR",
+            "notificar_padres",
+            SettingsState.piar_params["notificar_padres_actualizacion"],
+            lambda v: SettingsState.update_piar_params_field(
+                "notificar_padres_actualizacion", v
+            ),
+        ),
+        form_input(
+            "Plazo máximo para diligenciar un PIAR (días)",
+            "plazo_dias",
+            SettingsState.piar_params["plazo_maximo_diligenciamiento_dias"],
+            lambda v: SettingsState.update_piar_params_field(
+                "plazo_maximo_diligenciamiento_dias", v
+            ),
+            type="number",
+        ),
+        class_name="space-y-6",
+    )
+
+
+def asistente_content() -> rx.Component:
+    return rx.el.div(
+        form_input(
+            "API Key del Modelo de Lenguaje",
+            "api_key",
+            SettingsState.asistente["api_key"],
+            lambda v: SettingsState.update_asistente_field("api_key", v),
+            placeholder="sk-...",
+            type="password",
+        ),
+        form_select(
+            "Modelo de IA",
+            "modelo_ia",
+            SettingsState.asistente["modelo_ia"],
+            lambda v: SettingsState.update_asistente_field("modelo_ia", v),
+            ["gpt-4-turbo", "gpt-3.5-turbo", "claude-3-opus", "gemini-1.5-pro"],
+        ),
+        form_textarea(
+            "Instrucciones Personalizadas (Prompt del Sistema)",
+            "instrucciones",
+            SettingsState.asistente["instrucciones_personalizadas"],
+            lambda v: SettingsState.update_asistente_field(
+                "instrucciones_personalizadas", v
+            ),
+            placeholder="Eres un asistente experto en...",
+            rows=8,
+        ),
+        form_input(
+            f"Temperatura: {SettingsState.asistente['temperatura'].to_string()}",
+            "temperatura",
+            SettingsState.asistente["temperatura"],
+            lambda v: SettingsState.update_asistente_field("temperatura", v),
+            type="range",
+            custom_attrs={"min": "0", "max": "1", "step": "0.1"},
+        ),
+        class_name="space-y-6",
+    )
+
+
+def privacidad_content() -> rx.Component:
+    return rx.el.div(
+        rx.el.h4(
+            "Consentimiento y Datos",
+            class_name="text-md font-semibold text-neutral-700 mb-2 border-b pb-2",
+        ),
+        form_checkbox(
+            "Gestionar consentimiento para tratamiento de datos sensibles de estudiantes",
+            "consentimiento_datos",
+            SettingsState.privacidad["consentimiento_datos_sensibles"],
+            lambda v: SettingsState.update_privacidad_field(
+                "consentimiento_datos_sensibles", v
+            ),
+        ),
+        form_checkbox(
+            "Anonimizar datos en reportes y estadísticas globales",
+            "anonimizar_reportes",
+            SettingsState.privacidad["anonimizar_reportes_globales"],
+            lambda v: SettingsState.update_privacidad_field(
+                "anonimizar_reportes_globales", v
+            ),
+        ),
+        rx.el.h4(
+            "Integración con LMS/SIS",
+            class_name="text-md font-semibold text-neutral-700 mt-6 mb-2 border-b pb-2",
+        ),
+        form_checkbox(
+            "Activar integración con Sistema de Información Estudiantil (SIS) o LMS",
+            "lms_integracion_activa",
+            SettingsState.privacidad["lms_integracion_activa"],
+            lambda v: SettingsState.update_privacidad_field(
+                "lms_integracion_activa", v
+            ),
+        ),
+        rx.cond(
+            SettingsState.privacidad["lms_integracion_activa"],
+            rx.el.div(
+                form_input(
+                    "URL del API del LMS/SIS",
+                    "lms_api_url",
+                    SettingsState.privacidad["lms_api_url"],
+                    lambda v: SettingsState.update_privacidad_field("lms_api_url", v),
+                    placeholder="https://sis.example.com/api/v1",
+                ),
+                form_input(
+                    "API Key o Token de Autenticación del LMS/SIS",
+                    "lms_api_key",
+                    SettingsState.privacidad["lms_api_key"],
+                    lambda v: SettingsState.update_privacidad_field("lms_api_key", v),
+                    placeholder="...",
+                    type="password",
+                ),
+                class_name="grid md:grid-cols-2 gap-6 mt-4 p-4 border rounded-md bg-neutral-50",
+            ),
+            rx.fragment(),
+        ),
+        class_name="space-y-6",
     )
 
 
@@ -741,19 +928,13 @@ def settings_page() -> rx.Component:
             "7. Recursos e infraestructura", placeholder_content("Recursos"), "recursos"
         ),
         accordion_item(
-            "8. Parámetros del PIAR y flujos",
-            placeholder_content("Parámetros PIAR"),
-            "piar_params",
+            "8. Parámetros del PIAR y flujos", piar_params_content(), "piar_params"
         ),
         accordion_item(
-            "9. Asistente pedagógico (chat)",
-            placeholder_content("Asistente"),
-            "asistente",
+            "9. Asistente pedagógico (chat)", asistente_content(), "asistente"
         ),
         accordion_item(
-            "10. Privacidad e integraciones",
-            placeholder_content("Privacidad"),
-            "privacidad",
+            "10. Privacidad e integraciones", privacidad_content(), "privacidad"
         ),
         class_name="max-w-5xl mx-auto pb-12",
     )

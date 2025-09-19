@@ -78,6 +78,28 @@ class CatalogoItem(TypedDict):
     nombre: str
 
 
+class PiarParamsData(TypedDict):
+    requiere_aprobacion: bool
+    flujo_aprobacion: list[str]
+    notificar_padres_actualizacion: bool
+    plazo_maximo_diligenciamiento_dias: int
+
+
+class AsistenteData(TypedDict):
+    api_key: str
+    modelo_ia: str
+    instrucciones_personalizadas: str
+    temperatura: float
+
+
+class PrivacidadData(TypedDict):
+    consentimiento_datos_sensibles: bool
+    anonimizar_reportes_globales: bool
+    lms_integracion_activa: bool
+    lms_api_url: str
+    lms_api_key: str
+
+
 class SettingsState(rx.State):
     """State for the settings page."""
 
@@ -265,6 +287,25 @@ class SettingsState(rx.State):
             "asignaturas": [{"id": 201, "nombre": "Álgebra"}],
         },
     ]
+    piar_params: PiarParamsData = {
+        "requiere_aprobacion": True,
+        "flujo_aprobacion": ["Docente de apoyo", "Coordinador"],
+        "notificar_padres_actualizacion": False,
+        "plazo_maximo_diligenciamiento_dias": 15,
+    }
+    asistente: AsistenteData = {
+        "api_key": "",
+        "modelo_ia": "gpt-4-turbo",
+        "instrucciones_personalizadas": "Eres un asistente pedagógico experto en educación inclusiva. Tu rol es ayudar a los docentes a identificar barreras de aprendizaje y sugerir ajustes razonables y estrategias efectivas, basándote en la información del estudiante y el contexto educativo colombiano.",
+        "temperatura": 0.7,
+    }
+    privacidad: PrivacidadData = {
+        "consentimiento_datos_sensibles": True,
+        "anonimizar_reportes_globales": True,
+        "lms_integracion_activa": False,
+        "lms_api_url": "",
+        "lms_api_key": "",
+    }
 
     @rx.event
     def set_active_accordion(self, accordion_key: str):
@@ -480,3 +521,40 @@ class SettingsState(rx.State):
                     a for a in area["asignaturas"] if a["id"] != asignatura_id
                 ]
                 break
+
+    @rx.event
+    def update_piar_params_field(self, field: str, value):
+        if field == "plazo_maximo_diligenciamiento_dias":
+            try:
+                value = int(value)
+            except (ValueError, TypeError) as e:
+                logging.exception(f"Error converting plazo to int: {e}")
+                return rx.toast.error("El plazo debe ser un número.")
+        self.piar_params[field] = value
+        return rx.toast.success("Parámetro PIAR actualizado.")
+
+    @rx.event
+    def toggle_piar_params_aprobacion(self, rol: str):
+        if rol in self.piar_params["flujo_aprobacion"]:
+            self.piar_params["flujo_aprobacion"].remove(rol)
+        else:
+            self.piar_params["flujo_aprobacion"].append(rol)
+        return rx.toast.success("Flujo de aprobación actualizado.")
+
+    @rx.event
+    def update_asistente_field(self, field: str, value):
+        if field == "temperatura":
+            try:
+                value = float(value)
+                if not 0 <= value <= 1:
+                    raise ValueError
+            except (ValueError, TypeError) as e:
+                logging.exception(f"Error converting temperature to float: {e}")
+                return rx.toast.error("La temperatura debe ser un número entre 0 y 1.")
+        self.asistente[field] = value
+        return rx.toast.success("Ajuste de asistente guardado.")
+
+    @rx.event
+    def update_privacidad_field(self, field: str, value):
+        self.privacidad[field] = value
+        return rx.toast.success("Ajuste de privacidad guardado.")
