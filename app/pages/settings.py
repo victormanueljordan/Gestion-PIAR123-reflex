@@ -6,6 +6,7 @@ from app.states.settings_state import (
     CatalogoItem,
     Grado,
     Area,
+    Docente,
 )
 
 
@@ -636,6 +637,76 @@ def areas_asignaturas_content() -> rx.Component:
     )
 
 
+def docente_form_item(docente: Docente) -> rx.Component:
+    docente_id = docente["id"]
+    return rx.el.div(
+        rx.el.div(
+            rx.el.h5(f"Docente: {docente['nombre']}", class_name="font-semibold"),
+            rx.el.button(
+                rx.icon(tag="trash-2", class_name="h-4 w-4 text-red-500"),
+                on_click=lambda: SettingsState.delete_docente(docente_id),
+                class_name="p-1 rounded-md hover:bg-red-100",
+            ),
+            class_name="flex justify-between items-center mb-4",
+        ),
+        rx.el.div(
+            form_input(
+                "Nombre Completo",
+                "nombre",
+                docente["nombre"],
+                lambda v: SettingsState.update_docente(docente_id, "nombre", v),
+                required=True,
+            ),
+            form_input(
+                "Email",
+                "email",
+                docente["email"],
+                lambda v: SettingsState.update_docente(docente_id, "email", v),
+                type="email",
+                required=True,
+            ),
+            form_input(
+                "Teléfono",
+                "telefono",
+                docente["telefono"],
+                lambda v: SettingsState.update_docente(docente_id, "telefono", v),
+                type="tel",
+            ),
+            class_name="grid md:grid-cols-3 gap-4 mb-4",
+        ),
+        form_multiselect(
+            "Roles",
+            "roles",
+            docente["roles"],
+            lambda _, opt: SettingsState.toggle_docente_rol(docente_id, opt),
+            SettingsState.catalogo_roles.pluck("nombre"),
+        ),
+        class_name="p-4 border rounded-md mb-4 bg-neutral-50",
+    )
+
+
+def docentes_y_roles_content() -> rx.Component:
+    return rx.el.div(
+        rx.el.div(
+            rx.el.h4(
+                "Gestión de Docentes",
+                class_name="text-md font-semibold text-neutral-700 mb-2 border-b pb-2",
+            ),
+            rx.foreach(SettingsState.docentes, docente_form_item),
+            rx.el.button(
+                rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
+                "Añadir Docente",
+                on_click=SettingsState.add_docente,
+                class_name="mt-4 flex items-center px-4 py-2 bg-neutral-100 text-neutral-700 font-semibold rounded-lg text-sm hover:bg-neutral-200",
+            ),
+            class_name="mb-8",
+        ),
+        crud_catalogo_section(
+            "Roles del personal", SettingsState.catalogo_roles, "catalogo_roles"
+        ),
+    )
+
+
 def placeholder_content(title: str) -> rx.Component:
     return rx.el.div(
         rx.el.p(
@@ -662,9 +733,7 @@ def settings_page() -> rx.Component:
             "3. Grados, cursos y grupos", grados_cursos_grupos_content(), "grados"
         ),
         accordion_item("4. Áreas y asignaturas", areas_asignaturas_content(), "areas"),
-        accordion_item(
-            "5. Docentes y roles", placeholder_content("Docentes"), "docentes"
-        ),
+        accordion_item("5. Docentes y roles", docentes_y_roles_content(), "docentes"),
         accordion_item(
             "6. Catálogos pedagógicos (PIAR)", catalogos_content(), "catalogos"
         ),

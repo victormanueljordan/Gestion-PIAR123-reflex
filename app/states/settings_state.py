@@ -25,6 +25,14 @@ class Area(TypedDict):
     asignaturas: list[Asignatura]
 
 
+class Docente(TypedDict):
+    id: int
+    nombre: str
+    email: str
+    telefono: str
+    roles: list[str]
+
+
 class Sede(TypedDict):
     id: int
     nombre: str
@@ -211,6 +219,29 @@ class SettingsState(rx.State):
         {"id": 1, "nombre": "Trabajos escritos"},
         {"id": 2, "nombre": "Observaciones en clase"},
     ]
+    catalogo_roles: list[CatalogoItem] = [
+        {"id": 1, "nombre": "Docente de aula"},
+        {"id": 2, "nombre": "Docente de apoyo"},
+        {"id": 3, "nombre": "Coordinador"},
+        {"id": 4, "nombre": "Rector"},
+        {"id": 5, "nombre": "Psicólogo"},
+    ]
+    docentes: list[Docente] = [
+        {
+            "id": 1,
+            "nombre": "Ana María López",
+            "email": "ana.lopez@example.com",
+            "telefono": "3101234567",
+            "roles": ["Docente de aula", "Coordinador"],
+        },
+        {
+            "id": 2,
+            "nombre": "Carlos Restrepo",
+            "email": "carlos.restrepo@example.com",
+            "telefono": "3119876543",
+            "roles": ["Docente de apoyo"],
+        },
+    ]
     grados: list[Grado] = [
         {
             "id": 1,
@@ -306,6 +337,50 @@ class SettingsState(rx.State):
     def delete_sede(self, sede_id: int):
         self.sedes = [s for s in self.sedes if s["id"] != sede_id]
         return rx.toast.error("Sede eliminada.")
+
+    def _get_next_docente_id(self) -> int:
+        if not self.docentes:
+            return 1
+        return max((d["id"] for d in self.docentes)) + 1
+
+    @rx.event
+    def add_docente(self):
+        new_id = self._get_next_docente_id()
+        self.docentes.append(
+            {
+                "id": new_id,
+                "nombre": f"Nuevo Docente {new_id}",
+                "email": "",
+                "telefono": "",
+                "roles": [],
+            }
+        )
+        return rx.toast.success("Nuevo docente añadido.")
+
+    @rx.event
+    def update_docente(self, docente_id: int, field: str, value: str):
+        for i, docente in enumerate(self.docentes):
+            if docente["id"] == docente_id:
+                self.docentes[i][field] = value
+                break
+        return rx.toast.success("Docente actualizado.")
+
+    @rx.event
+    def delete_docente(self, docente_id: int):
+        self.docentes = [d for d in self.docentes if d["id"] != docente_id]
+        return rx.toast.error("Docente eliminado.")
+
+    @rx.event
+    def toggle_docente_rol(self, docente_id: int, rol_nombre: str):
+        for i, docente in enumerate(self.docentes):
+            if docente["id"] == docente_id:
+                current_roles = self.docentes[i]["roles"]
+                if rol_nombre in current_roles:
+                    current_roles.remove(rol_nombre)
+                else:
+                    current_roles.append(rol_nombre)
+                break
+        return rx.toast.success("Roles del docente actualizados.")
 
     @rx.event
     def add_grado(self):
