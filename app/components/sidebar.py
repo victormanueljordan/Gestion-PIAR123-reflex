@@ -14,6 +14,10 @@ def sidebar_item(name: Page, icon: str) -> rx.Component:
                     "opacity-100 translate-x-0 transition-all duration-200 delay-100",
                     "opacity-0 w-0 overflow-hidden transition-all duration-200",
                 ),
+                style={
+                    "white-space": "nowrap",
+                    "overflow": "hidden",
+                },
             ),
             class_name="flex items-center gap-3",
         ),
@@ -38,9 +42,12 @@ def sidebar() -> rx.Component:
                         "PIAR123",
                         class_name="text-2xl font-bold text-neutral-800",
                         style={
-                            "transition": "opacity 0.2s ease-in-out, width 0.3s ease-in-out",
+                            "transition": "all 0.3s ease-in-out",
                             "opacity": rx.cond(AppState.sidebar_open, "1", "0"),
                             "width": rx.cond(AppState.sidebar_open, "auto", "0"),
+                            "white-space": "nowrap",
+                            "overflow": "hidden",
+                            "min-width": rx.cond(AppState.sidebar_open, "auto", "0"),
                         },
                     ),
                     class_name="flex items-center gap-3 overflow-hidden",
@@ -79,19 +86,35 @@ def sidebar() -> rx.Component:
                     rx.el.p(
                         "Admin User",
                         class_name="font-semibold text-sm text-neutral-800",
+                        style={
+                            "white-space": "nowrap",
+                            "overflow": "hidden",
+                        },
                     ),
-                    rx.el.p("admin@piar123.com", class_name="text-xs text-neutral-500"),
+                    rx.el.p(
+                        "admin@piar123.com", 
+                        class_name="text-xs text-neutral-500",
+                        style={
+                            "white-space": "nowrap",
+                            "overflow": "hidden",
+                        },
+                    ),
                     class_name="flex flex-col",
                     style={
-                        "transition": "opacity 0.2s ease-in-out, width 0.3s ease-in-out",
+                        "transition": "all 0.3s ease-in-out",
                         "opacity": rx.cond(AppState.sidebar_open, "1", "0"),
                         "width": rx.cond(AppState.sidebar_open, "auto", "0"),
+                        "min-width": rx.cond(AppState.sidebar_open, "auto", "0"),
+                        "overflow": "hidden",
                     },
                 ),
                 class_name="flex items-center gap-3 p-4 overflow-hidden",
             ),
             class_name="border-t border-neutral-200",
         ),
-        class_name="flex flex-col justify-between h-screen bg-white border-r border-neutral-200 transition-width duration-300 ease-in-out",
+        class_name="flex flex-col justify-between h-screen bg-white border-r border-neutral-200 transition-all duration-300 ease-in-out",
+        style={
+            "min-width": "80px",
+        },
         width=rx.cond(AppState.sidebar_open, "280px", "80px"),
     )
