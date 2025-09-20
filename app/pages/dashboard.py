@@ -1,9 +1,27 @@
+# Importaciones para la página del dashboard principal
 import reflex as rx
+# Estado que maneja los datos y estadísticas del dashboard
 from app.states.dashboard_state import DashboardState
 
 
 def stat_card(title: str, value: rx.Var[str], icon: str) -> rx.Component:
-    """A card to display a statistic."""
+    """
+    Crea una tarjeta de estadística con icono, título y valor numérico.
+    
+    Args:
+        title (str): Título descriptivo de la estadística
+        value (rx.Var[str]): Valor reactivo que se muestra como estadística principal
+        icon (str): Nombre del icono de Lucide React a mostrar
+    
+    Returns:
+        rx.Component: Tarjeta estilizada con icono, título y valor
+    
+    Características:
+        - Icono con fondo de color en esquina superior izquierda
+        - Título en texto pequeño y valor en texto grande y bold
+        - Diseño horizontal con gap entre icono y contenido
+        - Estilos de sombra y bordes redondeados
+    """
     return rx.el.div(
         rx.el.div(
             rx.icon(tag=icon, class_name="h-6 w-6 text-indigo-500"),
@@ -19,6 +37,25 @@ def stat_card(title: str, value: rx.Var[str], icon: str) -> rx.Component:
 
 
 def recent_activity_item(activity: rx.Var[dict]) -> rx.Component:
+    """
+    Genera un elemento individual de actividad reciente con avatar y descripción.
+    
+    Args:
+        activity (rx.Var[dict]): Diccionario con datos de la actividad que incluye:
+                                - user: nombre del usuario
+                                - action: acción realizada
+                                - subject: objeto de la acción
+                                - time: timestamp de la actividad
+    
+    Returns:
+        rx.Component: Elemento de actividad con avatar, descripción y timestamp
+    
+    Características:
+        - Avatar generado dinámicamente usando DiceBear API
+        - Descripción formateada con nombres en negrita
+        - Timestamp en texto pequeño y color gris
+        - Layout horizontal con gap entre avatar y contenido
+    """
     return rx.el.div(
         rx.image(
             src=f"https://api.dicebear.com/9.x/initials/svg?seed={activity['user']}",
@@ -38,7 +75,31 @@ def recent_activity_item(activity: rx.Var[dict]) -> rx.Component:
 
 
 def dashboard_page() -> rx.Component:
-    """The dashboard page with stats, charts, and recent activity."""
+    """
+    Página principal del dashboard del sistema PIAR123.
+    
+    Esta función genera la interfaz principal del dashboard que muestra un resumen
+    completo del estado del sistema y actividad reciente.
+    
+    Returns:
+        rx.Component: Página completa del dashboard con estadísticas y gráficos
+    
+    Estructura de la página:
+        - Encabezado con título y mensaje de bienvenida
+        - Grid de tarjetas de estadísticas principales:
+          * Total de estudiantes registrados
+          * PIARs activos en el sistema
+          * PIARs pendientes de revisión
+        - Sección de análisis con dos columnas:
+          * Gráfico de barras: progreso de PIARs en últimos 6 meses
+          * Lista de actividad reciente del sistema
+    
+    Características:
+        - Diseño responsive (1 columna en móvil, 2-3 en desktop)
+        - Gráficos interactivos usando Recharts
+        - Datos reactivos desde DashboardState
+        - Interfaz limpia y profesional
+    """
     return rx.el.div(
         rx.el.h1("Dashboard", class_name="text-3xl font-bold text-neutral-800"),
         rx.el.p(

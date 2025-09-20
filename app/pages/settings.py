@@ -1,16 +1,36 @@
+# Importaciones necesarias para la página de configuración
 import reflex as rx
+# Estados y tipos de datos para la gestión de configuraciones
 from app.states.settings_state import (
-    SettingsState,
-    Sede,
-    Periodo,
-    CatalogoItem,
-    Grado,
-    Area,
-    Docente,
+    SettingsState,  # Estado principal para manejar configuraciones
+    Sede,          # Tipo para datos de sedes institucionales
+    Periodo,       # Tipo para períodos académicos
+    CatalogoItem,  # Tipo para elementos de catálogos pedagógicos
+    Grado,         # Tipo para grados académicos
+    Area,          # Tipo para áreas de conocimiento
+    Docente,       # Tipo para información de docentes
 )
 
 
 def accordion_item(title: str, content: rx.Component, section_key: str) -> rx.Component:
+    """
+    Crea un elemento de acordeón expandible para organizar secciones de configuración.
+    
+    Args:
+        title (str): Título que se muestra en la cabecera del acordeón
+        content (rx.Component): Contenido que se muestra cuando el acordeón está expandido
+        section_key (str): Clave única para identificar la sección activa
+    
+    Returns:
+        rx.Component: Componente de acordeón con funcionalidad de expandir/contraer
+    
+    Características:
+        - Estado reactivo basado en SettingsState.active_accordion
+        - Animación de chevron (derecha/abajo) según el estado
+        - Estilos hover y transiciones suaves
+        - Estructura de botón + contenido condicional
+    """
+    # Determina si esta sección del acordeón está actualmente abierta
     is_open = SettingsState.active_accordion == section_key
     return rx.el.div(
         rx.el.button(
@@ -23,7 +43,7 @@ def accordion_item(title: str, content: rx.Component, section_key: str) -> rx.Co
                 class_name="flex justify-between items-center w-full",
             ),
             on_click=lambda: SettingsState.set_active_accordion(section_key),
-            class_name="w-full text-left p-4 bg-neutral-100 rounded-t-lg",
+            class_name="w-full text-left p-4 bg-neutral-100 rounded-t-lg hover:bg-neutral-50 transition-colors",
         ),
         rx.cond(is_open, rx.el.div(content, class_name="p-6 bg-white"), rx.el.div()),
         class_name="border border-neutral-200 rounded-lg shadow-sm mb-4",
@@ -41,6 +61,28 @@ def form_input(
     disabled: bool = False,
     **kwargs,
 ) -> rx.Component:
+    """
+    Crea un campo de entrada de formulario con etiqueta y estilos consistentes.
+    
+    Args:
+        label (str): Texto de la etiqueta del campo
+        name (str): Nombre del campo para identificación
+        value (rx.Var): Variable reactiva que contiene el valor actual
+        on_change: Función callback que se ejecuta al cambiar el valor
+        placeholder (str, opcional): Texto de ayuda mostrado cuando el campo está vacío
+        type (str, opcional): Tipo de input HTML (text, email, tel, number, etc.)
+        required (bool, opcional): Si el campo es obligatorio (muestra asterisco rojo)
+        disabled (bool, opcional): Si el campo está deshabilitado
+        **kwargs: Atributos adicionales para el elemento input
+    
+    Returns:
+        rx.Component: Campo de formulario completo con etiqueta y input estilizado
+    
+    Características:
+        - Indicador visual para campos requeridos (*)
+        - Estilos focus y disabled consistentes
+        - Responsive y accesible
+    """
     return rx.el.div(
         rx.el.label(
             label,
@@ -55,7 +97,7 @@ def form_input(
             type=type,
             required=required,
             disabled=disabled,
-            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-neutral-50",
+            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500 disabled:bg-neutral-50",
             **kwargs,
         ),
         class_name="w-full",
@@ -70,6 +112,25 @@ def form_select(
     options: list[str],
     required: bool = False,
 ) -> rx.Component:
+    """
+    Crea un campo de selección (dropdown) de formulario con opciones predefinidas.
+    
+    Args:
+        label (str): Texto de la etiqueta del campo
+        name (str): Nombre del campo para identificación
+        value (rx.Var): Variable reactiva que contiene el valor seleccionado
+        on_change: Función callback que se ejecuta al cambiar la selección
+        options (list[str]): Lista de opciones disponibles para seleccionar
+        required (bool, opcional): Si el campo es obligatorio (muestra asterisco rojo)
+    
+    Returns:
+        rx.Component: Campo de selección completo con etiqueta y dropdown estilizado
+    
+    Características:
+        - Genera opciones dinámicamente desde la lista proporcionada
+        - Indicador visual para campos requeridos
+        - Estilos consistentes con otros campos de formulario
+    """
     return rx.el.div(
         rx.el.label(
             label,
@@ -82,7 +143,7 @@ def form_select(
             default_value=value,
             on_change=on_change,
             required=required,
-            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500",
         ),
         class_name="w-full",
     )
@@ -91,6 +152,25 @@ def form_select(
 def form_multiselect(
     label: str, name: str, values: rx.Var[list[str]], on_change, options: list[str]
 ) -> rx.Component:
+    """
+    Crea un campo de selección múltiple con checkboxes para elegir varias opciones.
+    
+    Args:
+        label (str): Texto de la etiqueta del campo
+        name (str): Nombre base del campo para identificación
+        values (rx.Var[list[str]]): Lista reactiva de valores seleccionados
+        on_change: Función callback que se ejecuta al cambiar las selecciones
+        options (list[str]): Lista de opciones disponibles para seleccionar
+    
+    Returns:
+        rx.Component: Campo de selección múltiple con grid de checkboxes
+    
+    Características:
+        - Grid responsive (2 columnas en móvil, 3 en desktop)
+        - Checkboxes individuales para cada opción
+        - Estado reactivo que mantiene lista de selecciones
+        - Estilos consistentes y accesibles
+    """
     return rx.el.div(
         rx.el.label(
             label, class_name="block text-sm font-medium text-neutral-700 mb-2"
@@ -104,7 +184,7 @@ def form_multiselect(
                         name=f"{name}_{opt}",
                         is_checked=values.contains(opt),
                         on_change=lambda _: on_change(name, opt),
-                        class_name="h-4 w-4 text-indigo-600 border-neutral-300 rounded focus:ring-indigo-500",
+                        class_name="h-4 w-4 text-neutral-600 border-neutral-300 rounded focus:ring-neutral-500",
                     ),
                     rx.el.label(opt, class_name="ml-2 text-sm text-neutral-600"),
                     class_name="flex items-center",
@@ -116,6 +196,21 @@ def form_multiselect(
 
 
 def datos_institucion_content() -> rx.Component:
+    """
+    Genera el contenido del acordeón para configurar los datos básicos de la institución.
+    
+    Returns:
+        rx.Component: Formulario completo con campos para datos institucionales
+    
+    Incluye:
+        - Información básica: nombre oficial, código DANE/NIT
+        - Características: naturaleza (pública/privada), calendario (A/B)
+        - Niveles educativos: preescolar, básica, media
+        - Jornadas disponibles: mañana, tarde, única
+        - Datos del rector/director: nombre, email, teléfono
+        - Identidad visual: logo, colores primario y secundario
+        - Gestión de sedes: formularios dinámicos para múltiples sedes
+    """
     return rx.el.div(
         rx.el.div(
             form_input(
@@ -239,7 +334,7 @@ def datos_institucion_content() -> rx.Component:
                         on_click=SettingsState.handle_logo_upload(
                             rx.upload_files(upload_id="logo_upload")
                         ),
-                        class_name="mt-2 px-3 py-1 bg-indigo-50 text-indigo-600 text-sm font-semibold rounded-md hover:bg-indigo-100",
+                        class_name="mt-2 px-3 py-2 bg-indigo-50 text-indigo-600 text-sm font-semibold rounded-md hover:bg-indigo-100 transition-colors",
                     ),
                     class_name="w-full",
                 ),
@@ -278,13 +373,30 @@ def datos_institucion_content() -> rx.Component:
                 rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
                 "Añadir Sede",
                 on_click=SettingsState.add_sede,
-                class_name="mt-4 flex items-center px-4 py-2 bg-neutral-100 text-neutral-700 font-semibold rounded-lg text-sm hover:bg-neutral-200",
+                class_name="mt-4 flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors",
             ),
         ),
     )
 
 
 def sede_form_item(sede: Sede) -> rx.Component:
+    """
+    Genera un formulario individual para editar los datos de una sede específica.
+    
+    Args:
+        sede (Sede): Objeto con los datos de la sede a editar
+    
+    Returns:
+        rx.Component: Formulario completo para una sede con campos editables
+    
+    Características:
+        - Encabezado con nombre de la sede y botón de eliminación
+        - Grid responsive con campos: nombre, dirección, ciudad, teléfono, email
+        - Funcionalidad de actualización en tiempo real
+        - Botón de eliminación con icono de papelera
+        - Estilos diferenciados (fondo gris claro)
+    """
+    # Obtiene el ID único de la sede para las operaciones de actualización
     sede_id = sede["id"]
     return rx.el.div(
         rx.el.div(
@@ -335,6 +447,25 @@ def sede_form_item(sede: Sede) -> rx.Component:
 
 
 def ano_lectivo_content() -> rx.Component:
+    """
+    Genera el contenido del acordeón para configurar el año lectivo y períodos académicos.
+    
+    Returns:
+        rx.Component: Formulario completo para configuración del año lectivo
+    
+    Incluye:
+        - Año lectivo activo (campo numérico)
+        - Fechas de inicio y fin de clases
+        - Esquema de períodos (bimestres, trimestres, semestres)
+        - Fecha límite para edición de PIAR
+        - Gestión dinámica de períodos académicos
+        - Botón para agregar nuevos períodos
+    
+    Características:
+        - Validación de fechas y coherencia temporal
+        - Formularios dinámicos para períodos
+        - Configuración flexible del calendario académico
+    """
     return rx.el.div(
         rx.el.div(
             form_input(
@@ -391,7 +522,7 @@ def ano_lectivo_content() -> rx.Component:
                 rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
                 "Añadir Periodo",
                 on_click=SettingsState.add_periodo,
-                class_name="mt-4 flex items-center px-4 py-2 bg-neutral-100 text-neutral-700 font-semibold rounded-lg text-sm hover:bg-neutral-200",
+                class_name="mt-4 flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors",
             ),
         ),
     )
@@ -432,7 +563,7 @@ def periodo_form_item(periodo: Periodo) -> rx.Component:
                     on_change=lambda v: SettingsState.update_periodo(
                         periodo_id, "activo", v
                     ),
-                    class_name="h-5 w-5 mt-2 text-indigo-600 border-neutral-300 rounded focus:ring-indigo-500",
+                    class_name="h-5 w-5 mt-2 text-neutral-600 border-neutral-300 rounded focus:ring-neutral-500",
                 ),
                 class_name="flex flex-col items-center justify-center",
             ),
@@ -474,12 +605,12 @@ def crud_catalogo_section(
                 rx.el.input(
                     name="nombre",
                     placeholder="Nuevo elemento...",
-                    class_name="flex-grow px-3 py-2 bg-white border border-neutral-300 rounded-l-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+                    class_name="flex-grow px-3 py-2 bg-white border border-neutral-300 rounded-l-md shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500",
                 ),
                 rx.el.button(
                     "Añadir",
                     type="submit",
-                    class_name="px-4 py-2 bg-indigo-500 text-white font-semibold rounded-r-md text-sm hover:bg-indigo-600",
+                    class_name="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-r-md text-sm hover:bg-indigo-700 transition-colors",
                 ),
                 class_name="flex",
             ),
@@ -562,7 +693,7 @@ def grados_cursos_grupos_content() -> rx.Component:
                     rx.el.button(
                         "Añadir Grupo",
                         on_click=lambda: SettingsState.add_grupo(grado["id"]),
-                        class_name="mt-2 px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-md hover:bg-indigo-100",
+                        class_name="mt-2 px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-md hover:bg-indigo-100 transition-colors",
                     ),
                     class_name="ml-8 pl-4 border-l-2",
                 ),
@@ -573,7 +704,7 @@ def grados_cursos_grupos_content() -> rx.Component:
             rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
             "Añadir Grado",
             on_click=SettingsState.add_grado,
-            class_name="mt-4 flex items-center px-4 py-2 bg-neutral-100 text-neutral-700 font-semibold rounded-lg text-sm hover:bg-neutral-200",
+            class_name="mt-4 flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors",
         ),
     )
 
@@ -622,7 +753,7 @@ def areas_asignaturas_content() -> rx.Component:
                     rx.el.button(
                         "Añadir Asignatura",
                         on_click=lambda: SettingsState.add_asignatura(area["id"]),
-                        class_name="mt-2 px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-md hover:bg-indigo-100",
+                        class_name="mt-2 px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-md hover:bg-indigo-100 transition-colors",
                     ),
                     class_name="ml-8 pl-4 border-l-2",
                 ),
@@ -633,7 +764,7 @@ def areas_asignaturas_content() -> rx.Component:
             rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
             "Añadir Área",
             on_click=SettingsState.add_area,
-            class_name="mt-4 flex items-center px-4 py-2 bg-neutral-100 text-neutral-700 font-semibold rounded-lg text-sm hover:bg-neutral-200",
+            class_name="mt-4 flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors",
         ),
         class_name="grid md:grid-cols-2 gap-8",
     )
@@ -699,7 +830,7 @@ def docentes_y_roles_content() -> rx.Component:
                 rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
                 "Añadir Docente",
                 on_click=SettingsState.add_docente,
-                class_name="mt-4 flex items-center px-4 py-2 bg-neutral-100 text-neutral-700 font-semibold rounded-lg text-sm hover:bg-neutral-200",
+                class_name="mt-4 flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors",
             ),
             class_name="mb-8",
         ),
@@ -720,7 +851,7 @@ def form_checkbox(
                 name=name,
                 is_checked=is_checked,
                 on_change=on_change,
-                class_name="h-4 w-4 text-indigo-600 border-neutral-300 rounded focus:ring-indigo-500 mr-2",
+                class_name="h-4 w-4 text-neutral-600 border-neutral-300 rounded focus:ring-neutral-500 mr-2",
             ),
             label,
             class_name="flex items-center text-sm font-medium text-neutral-700",
@@ -741,7 +872,7 @@ def form_textarea(
             on_change=on_change,
             placeholder=placeholder,
             rows=rows,
-            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-neutral-500 focus:border-neutral-500",
         ),
         class_name="w-full",
     )
@@ -903,38 +1034,91 @@ def placeholder_content(title: str) -> rx.Component:
 
 
 def settings_page() -> rx.Component:
-    """Page for adjusting app and profile settings."""
+    """
+    Página principal de configuración del sistema PIAR123.
+    
+    Esta función genera la interfaz completa de configuración organizada en acordeones
+    que permiten al usuario ajustar todos los parámetros institucionales y del sistema.
+    
+    Returns:
+        rx.Component: Página completa de configuración con estructura de acordeones
+    
+    Estructura de la página:
+        - Encabezado con título y descripción
+        - 10 secciones organizadas en acordeones expandibles:
+          1. Datos de la institución (información básica, sedes)
+          2. Año lectivo y períodos (fechas, esquemas temporales)
+          3. Grados, cursos y grupos (estructura académica)
+          4. Áreas y asignaturas (currículo)
+          5. Docentes y roles (personal)
+          6. Catálogos pedagógicos PIAR (elementos específicos)
+          7. Recursos e infraestructura (en construcción)
+          8. Parámetros del PIAR y flujos (configuración específica)
+          9. Asistente pedagógico (configuración de IA)
+          10. Privacidad e integraciones (LMS/SIS)
+    
+    Características:
+        - Interfaz organizada y fácil de navegar
+        - Estado persistente de acordeones
+        - Formularios reactivos con validación
+        - Responsive design
+    """
     return rx.el.div(
         rx.el.h1("Configuración", class_name="text-3xl font-bold text-neutral-800"),
-        rx.el.p(
-            "Ajusta todos los parámetros de la institución y del sistema.",
-            class_name="text-neutral-600 mt-1 mb-8",
+        rx.el.p("Ajusta todos los parámetros de la institución y del sistema.", class_name="text-neutral-600 mt-1"),
+        
+        rx.el.div(
+            accordion_item(
+                "1. Datos de la institución",
+                datos_institucion_content(),
+                "datos_institucion"
+            ),
+            accordion_item(
+                "2. Año lectivo y períodos",
+                ano_lectivo_content(),
+                "ano_lectivo"
+            ),
+            accordion_item(
+                "3. Grados, cursos y grupos",
+                grados_cursos_grupos_content(),
+                "grados_cursos"
+            ),
+            accordion_item(
+                "4. Áreas y asignaturas",
+                areas_asignaturas_content(),
+                "areas_asignaturas"
+            ),
+            accordion_item(
+                "5. Docentes y roles",
+                docentes_y_roles_content(),
+                "docentes_roles"
+            ),
+            accordion_item(
+                "6. Catálogos pedagógicos (PIAR)",
+                catalogos_content(),
+                "categorias_piar"
+            ),
+            accordion_item(
+                "7. Recursos e infraestructura",
+                placeholder_content("Recursos"),
+                "recursos_infraestructura"
+            ),
+            accordion_item(
+                "8. Parámetros del PIAR y flujos",
+                piar_params_content(),
+                "piar_params"
+            ),
+            accordion_item(
+                "9. Asistente pedagógico (chat)",
+                asistente_content(),
+                "asistente"
+            ),
+            accordion_item(
+                "10. Privacidad e integraciones",
+                privacidad_content(),
+                "privacidad"
+            ),
+            class_name="w-full mt-6"
         ),
-        accordion_item(
-            "1. Datos de la institución", datos_institucion_content(), "institucion"
-        ),
-        accordion_item(
-            "2. Año lectivo y periodos", ano_lectivo_content(), "ano_lectivo"
-        ),
-        accordion_item(
-            "3. Grados, cursos y grupos", grados_cursos_grupos_content(), "grados"
-        ),
-        accordion_item("4. Áreas y asignaturas", areas_asignaturas_content(), "areas"),
-        accordion_item("5. Docentes y roles", docentes_y_roles_content(), "docentes"),
-        accordion_item(
-            "6. Catálogos pedagógicos (PIAR)", catalogos_content(), "catalogos"
-        ),
-        accordion_item(
-            "7. Recursos e infraestructura", placeholder_content("Recursos"), "recursos"
-        ),
-        accordion_item(
-            "8. Parámetros del PIAR y flujos", piar_params_content(), "piar_params"
-        ),
-        accordion_item(
-            "9. Asistente pedagógico (chat)", asistente_content(), "asistente"
-        ),
-        accordion_item(
-            "10. Privacidad e integraciones", privacidad_content(), "privacidad"
-        ),
-        class_name="max-w-5xl mx-auto pb-12",
+        class_name="w-full"
     )
