@@ -53,34 +53,39 @@ def status_badge(status: rx.Var[str]) -> rx.Component:
     )
 
 
-def piar_row(piar: PiarFormat) -> rx.Component:
-    return rx.el.tr(
-        rx.el.td(
+def piar_card(piar: PiarFormat) -> rx.Component:
+    """Displays a single PIAR format as a card."""
+    return rx.el.div(
+        rx.el.div(
             rx.el.div(
-                rx.el.p(
-                    piar["student_name"], class_name="font-semibold text-neutral-800"
+                rx.el.h3(
+                    piar["student_name"],
+                    class_name="text-lg font-bold text-neutral-800",
                 ),
                 rx.el.p(f"ID: {piar['id']}", class_name="text-sm text-neutral-500"),
-                class_name="flex flex-col",
             ),
-            class_name="px-6 py-4",
+            status_badge(piar["status"]),
+            class_name="flex justify-between items-start mb-4",
         ),
-        rx.el.td(piar["creation_date"], class_name="px-6 py-4 text-neutral-600"),
-        rx.el.td(status_badge(piar["status"]), class_name="px-6 py-4"),
-        rx.el.td(
+        rx.el.div(
             rx.el.div(
+                rx.el.p("Fecha de creación", class_name="text-xs text-neutral-500"),
+                rx.el.p(piar["creation_date"], class_name="font-medium text-sm"),
+            ),
+            rx.el.div(
+                rx.el.p("Última modificación", class_name="text-xs text-neutral-500"),
                 rx.el.p(
-                    f"Modificado por: {piar['last_modified_by']}", class_name="text-xs"
-                ),
-                rx.el.p(
-                    f"Fecha: {piar['last_modified_date']}",
-                    class_name="text-xs text-neutral-500",
+                    f"{piar['last_modified_date']} por {piar['last_modified_by']}",
+                    class_name="font-medium text-sm",
                 ),
             ),
-            class_name="px-6 py-4 text-neutral-600",
+            class_name="grid grid-cols-2 gap-4 mb-4",
         ),
-        rx.el.td(piar_actions(piar), class_name="px-6 py-4 text-right"),
-        class_name="border-b border-neutral-200 hover:bg-neutral-100",
+        rx.el.div(
+            piar_actions(piar),
+            class_name="flex justify-end pt-4 border-t border-neutral-100",
+        ),
+        class_name="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm hover:shadow-lg transition-shadow",
     )
 
 
@@ -120,35 +125,8 @@ def piar_list_view() -> rx.Component:
             class_name="mt-8",
         ),
         rx.el.div(
-            rx.el.div(
-                rx.el.table(
-                    rx.el.thead(
-                        rx.el.tr(
-                            rx.el.th(
-                                "Estudiante",
-                                class_name="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider",
-                            ),
-                            rx.el.th(
-                                "Fecha Creación",
-                                class_name="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider",
-                            ),
-                            rx.el.th(
-                                "Estado",
-                                class_name="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider",
-                            ),
-                            rx.el.th(
-                                "Última Modificación",
-                                class_name="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider",
-                            ),
-                            rx.el.th("", class_name="px-6 py-3"),
-                        )
-                    ),
-                    rx.el.tbody(rx.foreach(PiarState.paginated_piar_formats, piar_row)),
-                    class_name="min-w-full bg-white",
-                ),
-                class_name="overflow-hidden border border-neutral-200 rounded-xl",
-            ),
-            class_name="mt-4",
+            rx.foreach(PiarState.paginated_piar_formats, piar_card),
+            class_name="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6",
         ),
         rx.el.div(
             rx.el.p(
@@ -170,7 +148,7 @@ def piar_list_view() -> rx.Component:
                 ),
                 class_name="flex gap-2",
             ),
-            class_name="flex justify-between items-center mt-4",
+            class_name="flex justify-between items-center mt-8",
         ),
         class_name="w-full",
     )
