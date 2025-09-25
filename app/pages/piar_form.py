@@ -109,7 +109,7 @@ def item_modal() -> rx.Component:
                             ),
                             rx.el.div(
                                 rx.el.label(
-                                    "Resumen del Concepto",
+                                    "Concepto o Diagnóstico",
                                     class_name="text-sm font-medium",
                                 ),
                                 rx.el.textarea(
@@ -249,6 +249,37 @@ def item_modal() -> rx.Component:
                                 rows=3,
                                 disabled=PiarState.is_final,
                             ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Responsable de la Estrategia",
+                                    class_name="text-sm font-medium mt-4",
+                                ),
+                                rx.el.input(
+                                    name="responsable_estrategia",
+                                    default_value=default_item[
+                                        "responsable_estrategia"
+                                    ].to(str),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="w-full",
+                            ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Frecuencia de Aplicación",
+                                    class_name="text-sm font-medium mt-4",
+                                ),
+                                rx.el.input(
+                                    name="frecuencia_aplicacion",
+                                    default_value=default_item[
+                                        "frecuencia_aplicacion"
+                                    ].to(str),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="w-full",
+                            ),
+                            class_name="grid grid-cols-2 gap-4",
                         ),
                         rx.fragment(),
                     ),
@@ -292,6 +323,38 @@ def item_modal() -> rx.Component:
                                 rows=3,
                                 disabled=PiarState.is_final,
                             ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Fecha del Seguimiento",
+                                    class_name="text-sm font-medium mt-4",
+                                ),
+                                rx.el.input(
+                                    name="fecha_seguimiento",
+                                    type_="date",
+                                    default_value=default_item["fecha_seguimiento"].to(
+                                        str
+                                    ),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="w-full",
+                            ),
+                            rx.el.div(
+                                rx.el.label(
+                                    "Responsable del Seguimiento",
+                                    class_name="text-sm font-medium mt-4",
+                                ),
+                                rx.el.input(
+                                    name="responsable_seguimiento",
+                                    default_value=default_item[
+                                        "responsable_seguimiento"
+                                    ].to(str),
+                                    class_name="mt-1 w-full p-2 border rounded-md",
+                                    disabled=PiarState.is_final,
+                                ),
+                                class_name="w-full",
+                            ),
+                            class_name="grid grid-cols-2 gap-4",
                         ),
                         rx.fragment(),
                     ),
@@ -548,6 +611,64 @@ def acta_acuerdos_section() -> rx.Component:
     )
 
 
+def header_field(label: str, value: rx.Var[str]) -> rx.Component:
+    return rx.el.div(
+        rx.el.p(label, class_name="text-xs font-semibold text-neutral-500 uppercase"),
+        rx.el.p(value, class_name="text-sm text-neutral-800"),
+    )
+
+
+def piar_header_section() -> rx.Component:
+    return rx.el.div(
+        rx.el.h2(
+            "Encabezado del PIAR", class_name="text-xl font-bold text-neutral-800 mb-4"
+        ),
+        rx.el.div(
+            header_field("Institución", PiarState.piar_header["nombre_institucion"]),
+            header_field("DANE", PiarState.piar_header["dane"]),
+            header_field("Municipio", PiarState.piar_header["municipio"]),
+            header_field("Sede", PiarState.piar_header["sede"]),
+            header_field("Jornada", PiarState.piar_header["jornada"]),
+            header_field("Año Lectivo", PiarState.piar_header["ano_lectivo"]),
+            header_field("Curso/Grado", PiarState.piar_header["curso_grado_grupo"]),
+            header_field("Fecha de Ingreso", PiarState.piar_header["fecha_ingreso"]),
+            header_field(
+                "Tipo de Discapacidad", PiarState.piar_header["tipo_discapacidad"]
+            ),
+            class_name="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4 border rounded-lg bg-neutral-50",
+        ),
+        class_name="mb-8",
+    )
+
+
+def piar_responsables_section() -> rx.Component:
+    return rx.el.div(
+        rx.el.h2(
+            "Responsables del PIAR",
+            class_name="text-xl font-bold text-neutral-800 mb-4",
+        ),
+        rx.el.div(
+            header_field(
+                "Diligenciado por", PiarState.piar_responsables["docente_diligencia"]
+            ),
+            header_field("Rol", PiarState.piar_responsables["rol_docente"]),
+            header_field(
+                "Fecha de Diligenciamiento",
+                PiarState.piar_responsables["fecha_diligenciamiento"],
+            ),
+            header_field(
+                "Fecha de Revisión", PiarState.piar_responsables["fecha_revision"]
+            ),
+            header_field(
+                "Responsable del Seguimiento",
+                PiarState.piar_responsables["responsable_seguimiento_general"],
+            ),
+            class_name="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 p-4 border rounded-lg bg-neutral-50",
+        ),
+        class_name="mb-8",
+    )
+
+
 def piar_form_page() -> rx.Component:
     return rx.el.div(
         item_modal(),
@@ -578,6 +699,8 @@ def piar_form_page() -> rx.Component:
             ),
             class_name="flex items-start justify-between mb-8",
         ),
+        piar_header_section(),
+        piar_responsables_section(),
         accordion_section(
             "1. Caracterización del estudiante",
             "caracterizacion",
@@ -646,7 +769,7 @@ def piar_form_page() -> rx.Component:
             multi_entry_section(
                 "estrategias",
                 PiarState.estrategias,
-                ["Materia", "Periodo", "Método Sugerido"],
+                ["Materia", "Periodo", "Método Sugerido", "Responsable"],
             ),
         ),
         accordion_section(
@@ -655,7 +778,7 @@ def piar_form_page() -> rx.Component:
             multi_entry_section(
                 "seguimiento",
                 PiarState.seguimiento,
-                ["Materia", "Periodo", "Observaciones Avance"],
+                ["Materia", "Periodo", "Fecha Seguimiento", "Responsable"],
             ),
         ),
         accordion_section(

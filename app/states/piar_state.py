@@ -72,6 +72,8 @@ class Estrategia(TypedDict):
     periodo: str
     metodo_sugerido: str
     descripcion: str
+    responsable_estrategia: str
+    frecuencia_aplicacion: str
 
 
 class Seguimiento(TypedDict):
@@ -81,6 +83,28 @@ class Seguimiento(TypedDict):
     observaciones_avance: str
     evidencias_recolectadas: str
     acciones_mejora: str
+    fecha_seguimiento: str
+    responsable_seguimiento: str
+
+
+class PiarHeaderData(TypedDict):
+    nombre_institucion: str
+    dane: str
+    municipio: str
+    sede: str
+    jornada: str
+    ano_lectivo: str
+    curso_grado_grupo: str
+    fecha_ingreso: str
+    tipo_discapacidad: str
+
+
+class PiarResponsablesData(TypedDict):
+    docente_diligencia: str
+    rol_docente: str
+    fecha_diligenciamiento: str
+    fecha_revision: str
+    responsable_seguimiento_general: str
 
 
 import math
@@ -187,6 +211,24 @@ class PiarState(rx.State):
     ajustes: list[Ajuste] = []
     estrategias: list[Estrategia] = []
     seguimiento: list[Seguimiento] = []
+    piar_header: PiarHeaderData = {
+        "nombre_institucion": "",
+        "dane": "",
+        "municipio": "",
+        "sede": "",
+        "jornada": "",
+        "ano_lectivo": "",
+        "curso_grado_grupo": "",
+        "fecha_ingreso": "",
+        "tipo_discapacidad": "",
+    }
+    piar_responsables: PiarResponsablesData = {
+        "docente_diligencia": "",
+        "rol_docente": "",
+        "fecha_diligenciamiento": "",
+        "fecha_revision": "",
+        "responsable_seguimiento_general": "",
+    }
     acta_acuerdos: ActaAcuerdos = {
         "compromisos_institucion": "",
         "compromisos_familia": "",
@@ -215,6 +257,24 @@ class PiarState(rx.State):
             "intereses": "Dibujo, construcción con bloques.",
             "necesidades_especiales": "Dislexia diagnosticada.",
             "contexto_familiar_social": "Apoyo familiar constante.",
+        }
+        self.piar_header = {
+            "nombre_institucion": "Institución Educativa Ejemplo",
+            "dane": "123456789012",
+            "municipio": "Ciudad Ejemplo",
+            "sede": "Sede Principal",
+            "jornada": "Mañana",
+            "ano_lectivo": "2024",
+            "curso_grado_grupo": "3er Grado - A",
+            "fecha_ingreso": "2023-02-01",
+            "tipo_discapacidad": "Dislexia",
+        }
+        self.piar_responsables = {
+            "docente_diligencia": "Ana María López",
+            "rol_docente": "Docente de aula",
+            "fecha_diligenciamiento": "2024-03-10",
+            "fecha_revision": "2024-06-01",
+            "responsable_seguimiento_general": "Carlos Restrepo",
         }
         self.barreras = [
             {
@@ -284,6 +344,24 @@ class PiarState(rx.State):
         self.ajustes = []
         self.estrategias = []
         self.seguimiento = []
+        self.piar_header = {
+            "nombre_institucion": "",
+            "dane": "",
+            "municipio": "",
+            "sede": "",
+            "jornada": "",
+            "ano_lectivo": "",
+            "curso_grado_grupo": "",
+            "fecha_ingreso": "",
+            "tipo_discapacidad": "",
+        }
+        self.piar_responsables = {
+            "docente_diligencia": "",
+            "rol_docente": "",
+            "fecha_diligenciamiento": "",
+            "fecha_revision": "",
+            "responsable_seguimiento_general": "",
+        }
         self.acta_acuerdos = {
             "compromisos_institucion": "",
             "compromisos_familia": "",
