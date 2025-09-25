@@ -116,6 +116,21 @@ def dashboard_page() -> rx.Component:
                 DashboardState.stats["pendientes_revision"],
                 "file-clock",
             ),
+            stat_card(
+                "% Valoración Completa",
+                DashboardState.stats["cumplimiento_valoracion"],
+                "clipboard-check",
+            ),
+            stat_card(
+                "% con Seguimiento",
+                DashboardState.stats["cumplimiento_seguimiento"],
+                "calendar-check-2",
+            ),
+            stat_card(
+                "% con Firmas",
+                DashboardState.stats["cumplimiento_firmas"],
+                "square_pen",
+            ),
             class_name="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
         ),
         rx.el.div(

@@ -5,6 +5,7 @@ from app.pages.dashboard import dashboard_page
 from app.pages.students import students_page
 from app.pages.piar_formats import piar_formats_page
 from app.pages.settings import settings_page
+from app.pages.analysis_page import analysis_page
 
 
 def index() -> rx.Component:
@@ -27,6 +28,7 @@ def index() -> rx.Component:
                     ("Dashboard", dashboard_page()),
                     ("Estudiantes", students_page()),
                     ("Formatos PIAR", piar_formats_page()),
+                    ("Análisis Grupal", analysis_page()),
                     ("Configuración", settings_page()),
                     rx.el.p("Página no encontrada."),
                 ),

@@ -1,5 +1,29 @@
 import reflex as rx
 from typing import TypedDict, Optional, Literal
+from fpdf import FPDF
+import datetime
+
+
+class PiarHistory(TypedDict):
+    user: str
+    date: str
+    section: str
+
+
+class PiarAttachment(TypedDict):
+    id: int
+    name: str
+    url: str
+    uploaded_by: str
+    upload_date: str
+
+
+class PiarSignature(TypedDict):
+    id: int
+    name: str
+    role: str
+    date: str
+    signature_data: str
 
 
 class PiarFormat(TypedDict):
@@ -7,6 +31,11 @@ class PiarFormat(TypedDict):
     student_name: str
     creation_date: str
     status: str
+    last_modified_by: str
+    last_modified_date: str
+    history: list[PiarHistory]
+    attachments: list[PiarAttachment]
+    signatures: list[PiarSignature]
 
 
 class CaracterizacionEstudiante(TypedDict):
@@ -123,24 +152,44 @@ class PiarState(rx.State):
             "student_name": "Ana García",
             "creation_date": "2024-05-15",
             "status": "Completado",
+            "last_modified_by": "Admin User",
+            "last_modified_date": "2024-06-10",
+            "history": [],
+            "attachments": [],
+            "signatures": [],
         },
         {
             "id": 102,
             "student_name": "Luis Pérez",
             "creation_date": "2024-05-18",
             "status": "En Progreso",
+            "last_modified_by": "Dr. Morales",
+            "last_modified_date": "2024-06-11",
+            "history": [],
+            "attachments": [],
+            "signatures": [],
         },
         {
             "id": 103,
             "student_name": "Sofía Rodriguez",
             "creation_date": "2024-05-20",
             "status": "Pendiente",
+            "last_modified_by": "Sra. Diaz",
+            "last_modified_date": "2024-06-09",
+            "history": [],
+            "attachments": [],
+            "signatures": [],
         },
         {
             "id": 104,
             "student_name": "Carlos Martinez",
             "creation_date": "2024-05-21",
             "status": "En Progreso",
+            "last_modified_by": "Admin User",
+            "last_modified_date": "2024-06-12",
+            "history": [],
+            "attachments": [],
+            "signatures": [],
         },
     ]
     show_piar_form: bool = False
@@ -245,6 +294,10 @@ class PiarState(rx.State):
         "dificultad_observada": "",
         "evidencias": "",
     }
+    show_signature_pad: bool = False
+    current_signer_name: str = ""
+    current_signer_role: str = ""
+    upload_id: str = "piar_attachments"
 
     @rx.var
     def is_final(self) -> bool:
@@ -317,6 +370,27 @@ class PiarState(rx.State):
         self.show_assistant_form = True
         self.show_chat = False
         self.chat_messages = []
+
+    @rx.event
+    def export_piar_to_pdf(self):
+        if not self.selected_piar:
+            return rx.toast.error("No PIAR selected.")
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.cell(
+            200,
+            10,
+            txt=f"PIAR para {self.selected_piar['student_name']}",
+            ln=True,
+            align="C",
+        )
+        pdf.cell(200, 10, txt="Sección 1: Caracterización", ln=True)
+        pdf.multi_cell(0, 10, txt=str(self.caracterizacion))
+        pdf.cell(200, 10, txt="Sección 2: Barreras", ln=True)
+        for barrera in self.barreras:
+            pdf.multi_cell(0, 5, txt=str(barrera))
+        return rx.toast.success("PDF generation initiated (simulation).")
 
     @rx.event
     def return_to_piar_list(self):
@@ -498,3 +572,64 @@ class PiarState(rx.State):
     @rx.event
     def update_valoracion_pedagogica_field(self, area: str, field: str, value: str):
         self.valoracion_pedagogica[area][field] = value
+
+    @rx.event
+    def open_signature_pad(self):
+        self.show_signature_pad = True
+
+    @rx.event
+    def close_signature_pad(self):
+        self.show_signature_pad = False
+        self.current_signer_name = ""
+        self.current_signer_role = ""
+
+    @rx.event
+    def save_signature(self, signature_data: str):
+        if (
+            not self.selected_piar
+            or not self.current_signer_name
+            or (not self.current_signer_role)
+        ):
+            return rx.toast.error("Faltan datos del firmante.")
+        new_id = (
+            max((s.get("id", 0) for s in self.selected_piar["signatures"]), default=0)
+            + 1
+        )
+        new_signature: PiarSignature = {
+            "id": new_id,
+            "name": self.current_signer_name,
+            "role": self.current_signer_role,
+            "date": datetime.date.today().isoformat(),
+            "signature_data": signature_data,
+        }
+        self.selected_piar["signatures"].append(new_signature)
+        self.close_signature_pad()
+        return rx.toast.success(f"Firma de {self.current_signer_name} guardada.")
+
+    @rx.event
+    async def handle_attachment_upload(self, files: list[rx.UploadFile]):
+        if not files:
+            return
+        if not self.selected_piar:
+            return rx.toast.error("No PIAR seleccionado.")
+        for file in files:
+            upload_data = await file.read()
+            outfile = rx.get_upload_dir() / file.name
+            with outfile.open("wb") as file_object:
+                file_object.write(upload_data)
+            new_id = (
+                max(
+                    (a.get("id", 0) for a in self.selected_piar["attachments"]),
+                    default=0,
+                )
+                + 1
+            )
+            new_attachment: PiarAttachment = {
+                "id": new_id,
+                "name": file.name,
+                "url": rx.get_upload_url(file.name),
+                "uploaded_by": "Admin User",
+                "upload_date": datetime.date.today().isoformat(),
+            }
+            self.selected_piar["attachments"].append(new_attachment)
+        return rx.toast.success(f"{len(files)} archivo(s) subido(s).")

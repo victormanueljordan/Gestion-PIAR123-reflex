@@ -110,6 +110,7 @@ def sidebar() -> rx.Component:
                 sidebar_item("Dashboard", "layout-dashboard"),
                 sidebar_item("Estudiantes", "users"),
                 sidebar_item("Formatos PIAR", "file-text"),
+                sidebar_item("Análisis Grupal", "bar-chart-3"),
                 sidebar_item("Configuración", "settings-2"),
                 class_name="flex flex-col gap-2 p-4",
             ),

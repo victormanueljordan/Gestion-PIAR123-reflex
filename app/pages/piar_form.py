@@ -1,5 +1,6 @@
 import reflex as rx
 from app.states.piar_state import PiarState
+from app.components.signature_pad import signature_pad_modal
 
 
 def item_modal() -> rx.Component:
@@ -669,6 +670,76 @@ def piar_responsables_section() -> rx.Component:
     )
 
 
+def attachment_section() -> rx.Component:
+    return rx.el.div(
+        rx.upload.root(
+            rx.el.div(
+                rx.icon("paperclip", class_name="h-6 w-6 text-neutral-500"),
+                rx.el.p("Arrastra y suelta archivos o haz clic para subir"),
+                class_name="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer hover:bg-neutral-50",
+            ),
+            id=PiarState.upload_id,
+            multiple=True,
+            class_name="w-full mb-4",
+            disabled=PiarState.is_final,
+        ),
+        rx.el.button(
+            "Subir Archivos Seleccionados",
+            on_click=PiarState.handle_attachment_upload(
+                rx.upload_files(upload_id="piar_attachments")
+            ),
+            disabled=PiarState.is_final,
+            class_name="px-4 py-2 bg-indigo-500 text-white font-semibold rounded-lg text-sm hover:bg-indigo-600",
+        ),
+        rx.el.div(
+            rx.foreach(
+                PiarState.selected_piar["attachments"],
+                lambda attachment: rx.el.a(
+                    rx.el.div(
+                        rx.icon("file-text", class_name="h-5 w-5 text-indigo-600"),
+                        rx.el.p(attachment["name"], class_name="text-sm font-medium"),
+                        class_name="flex items-center gap-2 p-2 border rounded-md bg-white hover:bg-neutral-50",
+                    ),
+                    href=attachment["url"],
+                    is_external=True,
+                ),
+            ),
+            class_name="mt-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4",
+        ),
+    )
+
+
+def firma_section() -> rx.Component:
+    return rx.el.div(
+        signature_pad_modal(),
+        rx.el.div(
+            rx.foreach(
+                PiarState.selected_piar["signatures"],
+                lambda sig: rx.el.div(
+                    rx.el.div(
+                        rx.el.div(class_name="h-16 w-32 bg-gray-200 rounded border"),
+                        rx.el.p(
+                            f"{sig['name']} ({sig['role']})", class_name="font-semibold"
+                        ),
+                        rx.el.p(
+                            f"Firmado el: {sig['date']}",
+                            class_name="text-xs text-neutral-500",
+                        ),
+                        class_name="flex flex-col items-center gap-2 p-4 border rounded-lg bg-white",
+                    )
+                ),
+            ),
+            class_name="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4",
+        ),
+        rx.el.button(
+            "Añadir Firma",
+            on_click=PiarState.open_signature_pad,
+            disabled=PiarState.is_final,
+            class_name="mt-4 px-4 py-2 bg-indigo-500 text-white font-semibold rounded-lg text-sm hover:bg-indigo-600",
+        ),
+    )
+
+
 def piar_form_page() -> rx.Component:
     return rx.el.div(
         item_modal(),
@@ -786,5 +857,7 @@ def piar_form_page() -> rx.Component:
             "acta_acuerdos",
             acta_acuerdos_section(),
         ),
+        accordion_section("9. Firmas de los participantes", "firmas", firma_section()),
+        accordion_section("10. Archivos Adjuntos", "adjuntos", attachment_section()),
         class_name="w-full max-w-6xl mx-auto pb-12",
     )

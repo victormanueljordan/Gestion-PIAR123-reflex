@@ -8,6 +8,9 @@ class DashboardState(rx.State):
         "total_estudiantes": "125",
         "piars_activos": "88",
         "pendientes_revision": "12",
+        "cumplimiento_valoracion": "95%",
+        "cumplimiento_seguimiento": "78%",
+        "cumplimiento_firmas": "60%",
     }
     chart_data: list[dict[str, int | str]] = [
         {"name": "Ene", "piars": 30},

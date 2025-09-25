@@ -6,7 +6,8 @@ from app.pages.piar_form import piar_form_page
 def piar_actions(piar: PiarFormat) -> rx.Component:
     return rx.el.div(
         rx.el.button(
-            rx.icon("eye", class_name="h-4 w-4"),
+            rx.icon("download", class_name="h-4 w-4"),
+            on_click=PiarState.export_piar_to_pdf,
             class_name="p-2 hover:bg-neutral-200 rounded-md",
         ),
         rx.el.button(
@@ -66,6 +67,18 @@ def piar_row(piar: PiarFormat) -> rx.Component:
         ),
         rx.el.td(piar["creation_date"], class_name="px-6 py-4 text-neutral-600"),
         rx.el.td(status_badge(piar["status"]), class_name="px-6 py-4"),
+        rx.el.td(
+            rx.el.div(
+                rx.el.p(
+                    f"Modificado por: {piar['last_modified_by']}", class_name="text-xs"
+                ),
+                rx.el.p(
+                    f"Fecha: {piar['last_modified_date']}",
+                    class_name="text-xs text-neutral-500",
+                ),
+            ),
+            class_name="px-6 py-4 text-neutral-600",
+        ),
         rx.el.td(piar_actions(piar), class_name="px-6 py-4 text-right"),
         class_name="border-b border-neutral-200 hover:bg-neutral-100",
     )
@@ -121,6 +134,10 @@ def piar_list_view() -> rx.Component:
                             ),
                             rx.el.th(
                                 "Estado",
+                                class_name="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider",
+                            ),
+                            rx.el.th(
+                                "Última Modificación",
                                 class_name="px-6 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wider",
                             ),
                             rx.el.th("", class_name="px-6 py-3"),

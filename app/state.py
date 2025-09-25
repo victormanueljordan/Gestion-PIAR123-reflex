@@ -1,7 +1,9 @@
 import reflex as rx
 from typing import Literal
 
-Page = Literal["Dashboard", "Estudiantes", "Formatos PIAR", "Configuración"]
+Page = Literal[
+    "Dashboard", "Estudiantes", "Formatos PIAR", "Análisis Grupal", "Configuración"
+]
 
 
 class AppState(rx.State):
