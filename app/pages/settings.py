@@ -780,19 +780,19 @@ def docente_form_item(docente: Docente) -> rx.Component:
         ),
         rx.el.div(
             form_input(
-                "Nombre Completo",
+                "Nombre Completo *",
                 "nombre",
                 docente["nombre"],
                 lambda v: SettingsState.update_docente(docente_id, "nombre", v),
-                required=True,
+                placeholder="Ana María López",
             ),
             form_input(
-                "Email",
+                "Email *",
                 "email",
                 docente["email"],
                 lambda v: SettingsState.update_docente(docente_id, "email", v),
                 type="email",
-                required=True,
+                placeholder="ana.lop@example.com",
             ),
             form_input(
                 "Teléfono",
@@ -800,6 +800,7 @@ def docente_form_item(docente: Docente) -> rx.Component:
                 docente["telefono"],
                 lambda v: SettingsState.update_docente(docente_id, "telefono", v),
                 type="tel",
+                placeholder="3101234567",
             ),
             class_name="grid md:grid-cols-3 gap-4 mb-4",
         ),
@@ -819,21 +820,24 @@ def docentes_y_roles_content() -> rx.Component:
         rx.el.div(
             rx.el.h4(
                 "Gestión de Docentes",
-                class_name="text-md font-semibold text-neutral-700 mb-2 border-b pb-2",
+                class_name="text-lg font-semibold text-neutral-800 mb-4",
             ),
             rx.foreach(SettingsState.docentes, docente_form_item),
             rx.el.button(
                 rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
                 "Añadir Docente",
                 on_click=SettingsState.add_docente,
-                class_name="mt-4 flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors",
+                class_name="mt-4 flex items-center px-4 py-2 bg-indigo-100 text-indigo-700 font-semibold rounded-lg text-sm hover:bg-indigo-200 transition-colors",
             ),
-            class_name="mb-8",
+            class_name="w-full lg:w-2/3",
         ),
-        crud_catalogo_section(
-            "Roles del personal", SettingsState.catalogo_roles, "catalogo_roles"
+        rx.el.div(
+            crud_catalogo_section(
+                "Roles del personal", SettingsState.catalogo_roles, "catalogo_roles"
+            ),
+            class_name="w-full lg:w-1/3",
         ),
-        class_name="grid md:grid-cols-2 gap-8",
+        class_name="flex flex-col lg:flex-row gap-12",
     )
 
 
