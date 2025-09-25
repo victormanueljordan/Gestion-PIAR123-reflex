@@ -76,11 +76,16 @@ class StudentState(rx.State):
     ]
     show_add_student_modal: bool = False
     active_tab: TabName = "Identificación del estudiante"
+    form_data: dict[str, str] = {}
     search_query: str = ""
     grade_filter: str = ""
     status_filter: str = ""
     current_page: int = 1
     page_size: int = 5
+
+    @rx.event
+    def update_form_field(self, field: str, value: str):
+        self.form_data[field] = value
 
     @rx.var
     def grade_options(self) -> list[str]:
@@ -143,6 +148,7 @@ class StudentState(rx.State):
         self.show_add_student_modal = not self.show_add_student_modal
         if self.show_add_student_modal:
             self.active_tab = "Identificación del estudiante"
+            self.form_data = {}
 
     @rx.event
     def set_active_tab(self, tab_name: TabName):
@@ -152,18 +158,22 @@ class StudentState(rx.State):
     @rx.event
     def add_student(self, form_data: dict):
         """Adds a new student from the form data."""
+        all_form_data = {**self.form_data, **form_data}
         if not all(
-            (form_data.get(field) for field in ["nombres", "apellidos", "grado_actual"])
+            (
+                all_form_data.get(field)
+                for field in ["nombres", "apellidos", "grado_actual"]
+            )
         ):
-            return rx.toast.error("Por favor complete todos los campos requeridos.")
+            return rx.toast.error(
+                "Por favor complete los campos requeridos de la pestaña de identificación."
+            )
         new_id = max((s["id"] for s in self.students), default=0) + 1
-        new_name = (
-            f"{form_data.get('nombres', '')} {form_data.get('apellidos', '')}".strip()
-        )
+        new_name = f"{all_form_data.get('nombres', '')} {all_form_data.get('apellidos', '')}".strip()
         new_student: Student = {
             "id": new_id,
             "name": new_name,
-            "grade": form_data.get("grado_actual", "N/A"),
+            "grade": all_form_data.get("grado_actual", "N/A"),
             "status": "Activo",
             "avatar": new_name,
         }

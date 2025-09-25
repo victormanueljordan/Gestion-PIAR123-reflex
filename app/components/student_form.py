@@ -14,6 +14,30 @@ def form_field(
             placeholder=placeholder,
             type_=field_type,
             class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
+            on_change=lambda val: StudentState.update_form_field(name, val),
+        ),
+        class_name="col-span-1 md:col-span-1",
+    )
+
+
+def select_field(
+    label: str, name: str, options: list[str], placeholder: str | None = None
+) -> rx.Component:
+    return rx.el.div(
+        rx.el.label(
+            label, class_name="block text-sm font-medium text-neutral-600 mb-1"
+        ),
+        rx.el.select(
+            rx.cond(
+                placeholder is not None,
+                rx.el.option(placeholder, value="", disabled=True),
+                rx.fragment(),
+            ),
+            rx.foreach(options, lambda opt: rx.el.option(opt, value=opt)),
+            name=name,
+            on_change=lambda val: StudentState.update_form_field(name, val),
+            default_value="",
+            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500",
         ),
         class_name="col-span-1 md:col-span-1",
     )
@@ -65,6 +89,21 @@ def academic_info_tab() -> rx.Component:
     return rx.el.div(
         form_field("Grado Actual", "grado_actual", "Ej: 5to Grado"),
         form_field(
+            "Fecha de ingreso a la institución", "fecha_ingreso", "", field_type="date"
+        ),
+        select_field(
+            "¿Ha repetido algún grado?",
+            "repitente",
+            ["Sí", "No"],
+            placeholder="Seleccione una opción",
+        ),
+        select_field(
+            "Situación académica actual",
+            "situacion_academica",
+            ["En curso", "Repitente", "Reintegrado", "Otro"],
+            placeholder="Seleccione una situación",
+        ),
+        form_field(
             "Institución Educativa Anterior",
             "inst_anterior",
             "Nombre de la institución",
@@ -87,6 +126,18 @@ def family_info_tab() -> rx.Component:
         ),
         form_field(
             "Email del Acudiente", "email_acudiente", "correo@ejemplo.com", "email"
+        ),
+        select_field(
+            "¿Con quién vive el estudiante?",
+            "vive_con",
+            ["Madre", "Padre", "Ambos", "Otro"],
+            placeholder="Seleccione una opción",
+        ),
+        form_field(
+            "N° de personas en el hogar", "personas_hogar", "", field_type="number"
+        ),
+        form_field(
+            "Ocupación del acudiente", "ocupacion_acudiente", "Ocupación del acudiente"
         ),
         textarea_field(
             "Observaciones Familiares",
@@ -111,6 +162,49 @@ def health_info_tab() -> rx.Component:
             "condiciones_medicas",
             "Diagnósticos, tratamientos actuales, etc.",
         ),
+        select_field(
+            "¿Tiene discapacidad diagnosticada?",
+            "tiene_discapacidad",
+            ["Sí", "No"],
+            placeholder="Seleccione una opción",
+        ),
+        rx.cond(
+            StudentState.form_data.get("tiene_discapacidad", "No") == "Sí",
+            rx.el.div(
+                form_field(
+                    "Tipo de discapacidad", "tipo_discapacidad", "Tipo de discapacidad"
+                ),
+                textarea_field("Diagnóstico", "diagnostico", "Diagnóstico detallado"),
+                rx.el.div(
+                    rx.el.label(
+                        "Adjuntar soporte (opcional)",
+                        class_name="block text-sm font-medium text-neutral-600 mb-1",
+                    ),
+                    rx.upload.root(
+                        rx.el.button(
+                            "Seleccionar archivo",
+                            type_="button",
+                            class_name="w-full px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm text-sm font-medium text-neutral-700 hover:bg-neutral-50",
+                        ),
+                        id="soporte_discapacidad",
+                        class_name="col-span-1 md:col-span-2",
+                    ),
+                    rx.foreach(
+                        rx.selected_files("soporte_discapacidad"),
+                        lambda file: rx.el.div(
+                            rx.el.text(file),
+                            rx.el.button(
+                                "Cancelar",
+                                on_click=rx.cancel_upload("soporte_discapacidad"),
+                            ),
+                        ),
+                    ),
+                    class_name="col-span-1 md:col-span-2",
+                ),
+                class_name="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2 border-t pt-4 mt-4",
+            ),
+            rx.fragment(),
+        ),
         class_name="grid grid-cols-1 md:grid-cols-2 gap-4",
     )
 
@@ -131,6 +225,18 @@ def pedagogical_aspects_tab() -> rx.Component:
             "Intereses y Motivaciones",
             "intereses",
             "¿Qué le gusta y motiva al estudiante?",
+        ),
+        select_field(
+            "¿Cuenta con diagnóstico psicopedagógico?",
+            "diagnostico_psicopedagogico",
+            ["Sí", "No"],
+            placeholder="Seleccione una opción",
+        ),
+        select_field(
+            "¿Cuenta con PIAR anterior?",
+            "piar_anterior",
+            ["Sí", "No"],
+            placeholder="Seleccione una opción",
         ),
         class_name="grid grid-cols-1 md:grid-cols-2 gap-4",
     )
