@@ -129,7 +129,7 @@ def dashboard_page() -> rx.Component:
             stat_card(
                 "% con Firmas",
                 DashboardState.stats["cumplimiento_firmas"],
-                "square_pen",
+                "square-pen",
             ),
             class_name="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6",
         ),

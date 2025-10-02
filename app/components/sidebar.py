@@ -1,5 +1,6 @@
 import reflex as rx
 from app.state import AppState, Page
+from app.states.auth_state import AuthState
 
 
 def sidebar_item(name: Page, icon: str) -> rx.Component:
@@ -140,6 +141,13 @@ def sidebar() -> rx.Component:
                         "min-width": rx.cond(AppState.sidebar_open, "auto", "0"),
                         "overflow": "hidden",
                     },
+                ),
+                rx.el.button(
+                    rx.icon("log-out", class_name="h-5 w-5"),
+                    on_click=AuthState.sign_out,
+                    class_name="p-2 rounded-lg hover:bg-red-100 text-red-500 ml-auto",
+                    style={"opacity": rx.cond(AppState.sidebar_open, "1", "0")},
+                    title="Cerrar Sesión",
                 ),
                 class_name="flex items-center gap-3 p-4 overflow-hidden",
             ),

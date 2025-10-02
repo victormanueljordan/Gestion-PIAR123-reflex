@@ -1,6 +1,6 @@
 import reflex as rx
 from typing import TypedDict, Optional, Literal
-from fpdf import FPDF
+from fpdf2 import FPDF
 import datetime
 
 
@@ -297,7 +297,6 @@ class PiarState(rx.State):
     show_signature_pad: bool = False
     current_signer_name: str = ""
     current_signer_role: str = ""
-    upload_id: str = "piar_attachments"
 
     @rx.var
     def is_final(self) -> bool:
@@ -627,7 +626,7 @@ class PiarState(rx.State):
             new_attachment: PiarAttachment = {
                 "id": new_id,
                 "name": file.name,
-                "url": rx.get_upload_url(file.name),
+                "url": file.name,
                 "uploaded_by": "Admin User",
                 "upload_date": datetime.date.today().isoformat(),
             }

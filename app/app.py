@@ -1,25 +1,23 @@
 import reflex as rx
 from app.state import AppState
+from app.states.auth_state import AuthState
 from app.components.sidebar import sidebar
 from app.pages.dashboard import dashboard_page
 from app.pages.students import students_page
 from app.pages.piar_formats import piar_formats_page
 from app.pages.settings import settings_page
 from app.pages.analysis_page import analysis_page
+from app.pages.login_page import login_page
+
+
+def protected_page(page_content: rx.Component) -> rx.Component:
+    """Una página protegida que requiere autenticación."""
+    return rx.cond(AuthState.is_authenticated, page_content, login_page())
 
 
 def index() -> rx.Component:
-    """Vista principal de la aplicación PIAR123.
-
-    Esta función define el layout principal que contiene:
-    - Sidebar de navegación lateral
-    - Área de contenido principal con sistema de enrutamiento
-
-    Returns:
-        rx.Component: Componente principal con layout flex que incluye
-                     sidebar y contenido dinámico basado en el estado activo
-    """
-    return rx.el.div(
+    """Vista principal de la aplicación PIAR123."""
+    main_content = rx.el.div(
         sidebar(),
         rx.el.main(
             rx.el.div(
@@ -38,6 +36,7 @@ def index() -> rx.Component:
         ),
         class_name="flex bg-neutral-50 font-['Inter']",
     )
+    return protected_page(main_content)
 
 
 app = rx.App(
@@ -51,4 +50,5 @@ app = rx.App(
         ),
     ],
 )
-app.add_page(index, title="PIAR123")
+app.add_page(index, title="PIAR123", on_load=AuthState.check_session)
+app.add_page(login_page, route="/login", title="Iniciar Sesión")

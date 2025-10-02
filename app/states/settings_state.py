@@ -78,6 +78,17 @@ class CatalogoItem(TypedDict):
     nombre: str
 
 
+class Recurso(TypedDict):
+    id: int
+    nombre: str
+
+
+class AreaRecurso(TypedDict):
+    id: int
+    nombre: str
+    recursos: list[Recurso]
+
+
 class PiarParamsData(TypedDict):
     requiere_aprobacion: bool
     flujo_aprobacion: list[str]
@@ -343,7 +354,7 @@ class SettingsState(rx.State):
     @rx.var
     def logo_url(self) -> str:
         if self.institucion["logo"]:
-            return rx.get_upload_url(self.institucion["logo"])
+            return f"/{rx.get_upload_dir().name}/{self.institucion['logo']}"
         return "/placeholder.svg"
 
     def _get_next_sede_id(self) -> int:
@@ -519,6 +530,77 @@ class SettingsState(rx.State):
             if area["id"] == area_id:
                 self.areas[i]["asignaturas"] = [
                     a for a in area["asignaturas"] if a["id"] != asignatura_id
+                ]
+                break
+
+    recursos_instruccion: list[AreaRecurso] = [
+        {
+            "id": 1,
+            "nombre": "Salón 301",
+            "recursos": [
+                {"id": 101, "nombre": "Proyector de video"},
+                {"id": 102, "nombre": "Parlante Bluetooth"},
+            ],
+        },
+        {
+            "id": 2,
+            "nombre": "Cancha de baloncesto",
+            "recursos": [
+                {"id": 201, "nombre": "Balones de baloncesto"},
+                {"id": 202, "nombre": "Conos"},
+                {"id": 203, "nombre": "Cuerdas para saltar"},
+            ],
+        },
+    ]
+
+    @rx.event
+    def add_area_recurso(self):
+        new_id = max((a["id"] for a in self.recursos_instruccion), default=0) + 1
+        self.recursos_instruccion.append(
+            {"id": new_id, "nombre": f"Nueva Área/Salón {new_id}", "recursos": []}
+        )
+
+    @rx.event
+    def update_area_recurso_nombre(self, area_id: int, nombre: str):
+        for i, area in enumerate(self.recursos_instruccion):
+            if area["id"] == area_id:
+                self.recursos_instruccion[i]["nombre"] = nombre
+                break
+
+    @rx.event
+    def delete_area_recurso(self, area_id: int):
+        self.recursos_instruccion = [
+            a for a in self.recursos_instruccion if a["id"] != area_id
+        ]
+
+    @rx.event
+    def add_recurso(self, area_id: int):
+        for i, area in enumerate(self.recursos_instruccion):
+            if area["id"] == area_id:
+                new_id = (
+                    max((r["id"] for r in area["recursos"]), default=area_id * 100) + 1
+                )
+                self.recursos_instruccion[i]["recursos"].append(
+                    {"id": new_id, "nombre": f"Nuevo Recurso {new_id}"}
+                )
+                break
+
+    @rx.event
+    def update_recurso_nombre(self, area_id: int, recurso_id: int, nombre: str):
+        for i, area in enumerate(self.recursos_instruccion):
+            if area["id"] == area_id:
+                for j, recurso in enumerate(area["recursos"]):
+                    if recurso["id"] == recurso_id:
+                        self.recursos_instruccion[i]["recursos"][j]["nombre"] = nombre
+                        break
+                break
+
+    @rx.event
+    def delete_recurso(self, area_id: int, recurso_id: int):
+        for i, area in enumerate(self.recursos_instruccion):
+            if area["id"] == area_id:
+                self.recursos_instruccion[i]["recursos"] = [
+                    r for r in area["recursos"] if r["id"] != recurso_id
                 ]
                 break
 

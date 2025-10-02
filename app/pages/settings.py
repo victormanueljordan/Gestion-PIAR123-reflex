@@ -7,6 +7,7 @@ from app.states.settings_state import (
     Grado,
     Area,
     Docente,
+    AreaRecurso,
 )
 
 
@@ -766,6 +767,67 @@ def areas_asignaturas_content() -> rx.Component:
     )
 
 
+def recursos_instruccionales_content() -> rx.Component:
+    return rx.el.div(
+        rx.foreach(
+            SettingsState.recursos_instruccion,
+            lambda area: rx.el.div(
+                rx.el.div(
+                    rx.el.input(
+                        default_value=area["nombre"],
+                        on_blur=lambda val: SettingsState.update_area_recurso_nombre(
+                            area["id"], val
+                        ),
+                        class_name="flex-grow px-3 py-2 bg-white border border-neutral-300 rounded-md shadow-sm font-semibold",
+                    ),
+                    rx.el.button(
+                        rx.icon(tag="trash-2", class_name="h-4 w-4 text-red-500"),
+                        on_click=lambda: SettingsState.delete_area_recurso(area["id"]),
+                        class_name="p-2 rounded-md hover:bg-red-100",
+                    ),
+                    class_name="flex items-center gap-2 mb-2",
+                ),
+                rx.el.div(
+                    rx.foreach(
+                        area["recursos"],
+                        lambda recurso: rx.el.div(
+                            rx.el.input(
+                                default_value=recurso["nombre"],
+                                on_blur=lambda val: SettingsState.update_recurso_nombre(
+                                    area["id"], recurso["id"], val
+                                ),
+                                class_name="flex-grow px-2 py-1 bg-white border border-neutral-200 rounded-md text-sm",
+                            ),
+                            rx.el.button(
+                                rx.icon(tag="trash-2", class_name="h-3 w-3"),
+                                on_click=lambda: SettingsState.delete_recurso(
+                                    area["id"], recurso["id"]
+                                ),
+                                class_name="p-1 rounded-md hover:bg-neutral-200 text-neutral-500",
+                            ),
+                            class_name="flex items-center gap-2",
+                        ),
+                    ),
+                    rx.el.button(
+                        "Añadir Recurso",
+                        on_click=lambda: SettingsState.add_recurso(area["id"]),
+                        class_name="mt-2 px-2 py-1 bg-indigo-50 text-indigo-600 text-xs font-semibold rounded-md hover:bg-indigo-100 transition-colors",
+                    ),
+                    class_name="ml-8 pl-4 border-l-2",
+                ),
+                class_name="p-4 border rounded-md mb-4 bg-neutral-50",
+            ),
+        ),
+        rx.el.button(
+            rx.icon(tag="plus", class_name="mr-2 h-4 w-4"),
+            "Añadir Área/Salón",
+            on_click=SettingsState.add_area_recurso,
+            class_name="mt-4 flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 font-semibold rounded-lg text-sm hover:bg-indigo-100 transition-colors",
+        ),
+        class_name="grid md:grid-cols-2 gap-8",
+    )
+
+
 def docente_form_item(docente: Docente) -> rx.Component:
     docente_id = docente["id"]
     return rx.el.div(
@@ -1025,14 +1087,6 @@ def privacidad_content() -> rx.Component:
     )
 
 
-def placeholder_content(title: str) -> rx.Component:
-    return rx.el.div(
-        rx.el.p(
-            f"Contenido para {title} en construcción.", class_name="text-neutral-500"
-        )
-    )
-
-
 def settings_page() -> rx.Component:
     """
     Página principal de configuración del sistema PIAR123.
@@ -1097,9 +1151,9 @@ def settings_page() -> rx.Component:
                 "categorias_piar",
             ),
             accordion_item(
-                "7. Recursos e infraestructura",
-                placeholder_content("Recursos"),
-                "recursos_infraestructura",
+                "7. Recursos Instruccionales",
+                recursos_instruccionales_content(),
+                "recursos_instruccionales",
             ),
             accordion_item(
                 "8. Parámetros del PIAR y flujos", piar_params_content(), "piar_params"
