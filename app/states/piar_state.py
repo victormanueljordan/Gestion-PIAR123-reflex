@@ -1,6 +1,6 @@
 import reflex as rx
 from typing import TypedDict, Optional, Literal
-from fpdf2 import FPDF
+from fpdf import FPDF
 import datetime
 
 
